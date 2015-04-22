@@ -1,13 +1,14 @@
 ﻿
 using System;
-using System.Data.SQLite;
+using System.Data;
+using Mono.Data.SqliteClient;
 
 namespace SQLiteSamples
 {
     class Program
     {
         // Holds our connection with the database
-        SQLiteConnection m_dbConnection;
+        SqliteConnection m_dbConnection;
 
         static void Main(string[] args)
         {
@@ -26,13 +27,13 @@ namespace SQLiteSamples
         // Creates an empty database file
         void createNewDatabase()
         {
-            SQLiteConnection.CreateFile("MyDatabase.sqlite");
+            SqliteConnection.CreateFile("MyDatabase.sqlite");
         }
 
         // Creates a connection with our database file.
         void connectToDatabase()
         {
-            m_dbConnection = new SQLiteConnection("Data Source=MyDatabase.sqlite;Version=3;");
+            m_dbConnection = new SqliteConnection("Data Source=MyDatabase.sqlite;Version=3;");
             m_dbConnection.Open();
         }
 

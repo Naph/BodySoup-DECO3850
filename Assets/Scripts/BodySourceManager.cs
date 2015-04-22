@@ -8,7 +8,7 @@ public class BodySourceManager : MonoBehaviour
     private BodyFrameReader _Reader;
     private Body[] _Body = null;
 
-    public Body[] getBody()
+    public Body[] getBodies()
     {
         return _Body;
     }
@@ -27,7 +27,7 @@ public class BodySourceManager : MonoBehaviour
         }
 	}
 	
-	void Update () 
+	void Update ()
     {
         if (_Reader != null)
         {

@@ -5,3 +5,5 @@ C:\Users\Studio-User\Downloads\GettingStartedWithSQLitePart1\SQLiteSamples\SQLit
 C:\Users\Studio-User\Downloads\GettingStartedWithSQLitePart1\SQLiteSamples\SQLiteSamples\obj\x86\Debug\SQLiteSamples.csprojResolveAssemblyReference.cache
 C:\Users\Studio-User\Downloads\GettingStartedWithSQLitePart1\SQLiteSamples\SQLiteSamples\obj\x86\Debug\SQLiteSamples.exe
 C:\Users\Studio-User\Downloads\GettingStartedWithSQLitePart1\SQLiteSamples\SQLiteSamples\obj\x86\Debug\SQLiteSamples.pdb
+C:\Users\Studio-User\Documents\BodySoup\Project\Assets\Database\obj\x86\Debug\SQLiteSamples.exe
+C:\Users\Studio-User\Documents\BodySoup\Project\Assets\Database\obj\x86\Debug\SQLiteSamples.pdb

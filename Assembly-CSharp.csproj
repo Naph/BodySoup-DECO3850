@@ -46,10 +46,23 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Database\Program.cs" />
+     <Compile Include="Assets\Database\Properties\AssemblyInfo.cs" />
+     <Compile Include="Assets\Scripts\Body\UnityBody.cs" />
+     <Compile Include="Assets\Scripts\Body\UnityJoint.cs" />
      <Compile Include="Assets\Scripts\BodySourceManager.cs" />
      <Compile Include="Assets\Scripts\BodySourceView.cs" />
+     <None Include="Assets\Database\obj\x86\Debug\SQLiteSamples.csproj.FileListAbsolute.txt" />
+     <None Include="Assets\Database\bin\Debug\System.Data.SQLite.xml" />
+     <None Include="Assets\Database\SQLite\System.Data.SQLite.xml" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
+ </Reference>
+ <Reference Include="System.Data">
+ <HintPath>C:/Users/Studio-User/Documents/BodySoup/Project/Assets/Plugins/System.Data.dll</HintPath>
+ </Reference>
+ <Reference Include="Mono.Data.SqliteClient">
+ <HintPath>C:/Users/Studio-User/Documents/BodySoup/Project/Assets/Plugins/Mono.Data.SqliteClient.dll</HintPath>
  </Reference>
  <Reference Include="UnityEditor.iOS.Extensions.Xcode">
  <HintPath>C:/Program Files/Unity/Editor/Data/PlaybackEngines/iossupport/UnityEditor.iOS.Extensions.Xcode.dll</HintPath>
