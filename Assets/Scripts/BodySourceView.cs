@@ -7,6 +7,8 @@ public class BodySourceView : MonoBehaviour
 {
     public GameObject BodySourceManager;
 
+    private UnityBody _UnityBody;
+
     private Dictionary<ulong, UnityBody> _Bodies = new Dictionary<ulong, UnityBody>();
     private BodySourceManager _BodyManager;
 	
@@ -47,19 +49,7 @@ public class BodySourceView : MonoBehaviour
         }
 
         List<ulong> knownIds = new List<ulong>(_Bodies.Keys);
-
-        // Delete untracked bodies
-        for (int i = 0; i < knownIds.Count; i++)
-        {
-            var trackingId = knownIds[i];
-
-            if (!trackedIds.Contains(trackingId))
-            {
-                Destroy(_Bodies[trackingId]);
-                _Bodies.Remove(trackingId);
-            }
-        }
-
+        
         for (int i = 0; i < bodies.Length; i++)
         {
             var body = bodies[i];
@@ -73,7 +63,6 @@ public class BodySourceView : MonoBehaviour
             {
                 if (!_Bodies.ContainsKey(body.TrackingId))
                 {
-                    Debug.Log(body.TrackingId + " tracked");
                     _Bodies[body.TrackingId] = CreateBodyObject(body.TrackingId);
                 }
 
@@ -94,6 +83,18 @@ public class BodySourceView : MonoBehaviour
     
     private void RefreshBody(UnityBody body)
     {
-        
+        /* Delete untracked bodies
+        for (int i = 0; i < knownIds.Count; i++)
+        {
+            var trackingId = knownIds[i];
+
+            if (!trackedIds.Contains(trackingId))
+            {
+                Destroy(_Bodies[trackingId]);
+                _Bodies.Remove(trackingId);
+            }
+        }*/
+
+
     }
 }

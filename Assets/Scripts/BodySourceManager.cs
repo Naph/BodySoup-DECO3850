@@ -20,7 +20,7 @@ public class BodySourceManager : MonoBehaviour
         {
             _Reader = _Sensor.BodyFrameSource.OpenReader();
 
-            if (_Sensor.IsOpen)
+            if (!_Sensor.IsOpen)
             {
                 _Sensor.Open();
             }
@@ -31,7 +31,7 @@ public class BodySourceManager : MonoBehaviour
     {
         if (_Reader != null)
         {
-            var frame = _Reader.AcquireLatestFrame();
+            BodyFrame frame = _Reader.AcquireLatestFrame();
             if (frame != null)
             {
                 if (_Body == null)
