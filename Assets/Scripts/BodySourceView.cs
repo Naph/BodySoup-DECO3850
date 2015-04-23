@@ -13,7 +13,6 @@ public class BodySourceView : MonoBehaviour
 	
 	void Update()
     {
-        Debug.Log("BodySourceView Initialised");
         if (BodySourceManager == null)
         {
             return;
@@ -22,7 +21,6 @@ public class BodySourceView : MonoBehaviour
         _BodyManager = BodySourceManager.GetComponent<BodySourceManager>();
         if (_BodyManager == null)
         {
-            Debug.LogError("Could not receive BodySourceManager");
             return;
         }
 
@@ -75,14 +73,13 @@ public class BodySourceView : MonoBehaviour
             {
                 if (!_Bodies.ContainsKey(body.TrackingId))
                 {
+                    Debug.Log(body.TrackingId + " tracked");
                     _Bodies[body.TrackingId] = CreateBodyObject(body.TrackingId);
                 }
 
                 RefreshBody(_Bodies[body.TrackingId]);
             }
         }
-
-        print(_Bodies.Count + " tracked");
 	}
 
 
