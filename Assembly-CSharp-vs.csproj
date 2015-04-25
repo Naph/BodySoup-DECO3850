@@ -46,6 +46,12 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\BodySourceView1.cs" />
+     <Compile Include="Assets\Gestures\Gesture.cs" />
+     <Compile Include="Assets\Gestures\Gestures\HandBeam.cs" />
+     <Compile Include="Assets\Gestures\Position.cs" />
+     <Compile Include="Assets\Gestures\Positions\Rest.cs" />
+     <Compile Include="Assets\Gestures\Positions\RightArmUp.cs" />
      <Compile Include="Assets\Scripts\Body\UnityBody.cs" />
      <Compile Include="Assets\Scripts\Body\UnityJoint.cs" />
      <Compile Include="Assets\Scripts\BodySourceManager.cs" />

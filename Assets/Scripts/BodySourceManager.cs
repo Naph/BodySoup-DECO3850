@@ -36,6 +36,7 @@ public class BodySourceManager : MonoBehaviour
             {
                 if (_Body == null)
                 {
+                    //Debug.Log(_Sensor.BodyFrameSource.BodyCount);
                     _Body = new Body[_Sensor.BodyFrameSource.BodyCount];
                 }
 

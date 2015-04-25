@@ -26,4 +26,3 @@ C:\Users\Studio-User\Documents\BodySoup\Project\obj\Debug\Assembly-CSharp-Editor
 C:\Users\Studio-User\Documents\BodySoup\Project\obj\Debug\Assembly-CSharp-Editor-firstpass-vs.csprojResolveAssemblyReference.cache
 C:\Users\Studio-User\Documents\BodySoup\Project\Temp\bin\Debug\Mono.Data.SqliteClient.dll
 C:\Users\Studio-User\Documents\BodySoup\Project\Temp\bin\Debug\System.Data.dll
-C:\Users\Studio-User\Documents\BodySoup\Project\Temp\bin\Debug\Assembly-CSharp-firstpass.pdb

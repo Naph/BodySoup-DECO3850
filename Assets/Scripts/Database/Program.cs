@@ -1,74 +1,47 @@
-﻿
+﻿using UnityEngine;
 using System;
 using System.Data;
 using Mono.Data.SqliteClient;
 
-namespace SQLiteSamples
-{
-    class Program
-    {
-        // Holds our connection with the database
-        SqliteConnection _Database;
-        Program _Program;
+public class Program {
+	
+	public Program(SqliteConnection dbconn) {
+        	
+		dbconn.Open();
 
-        static void Main(string[] args)
-        {
-            //Program _Program = new Program();
-        }
+		//creating table
+		string sql = "create table bodysoup_main (id int(11), GestureCompleted varchar(255), kinnectjoint int)";
+		SqliteCommand command = new SqliteCommand(sql, dbconn);
+		command.ExecuteNonQuery();
 
-        public Program()
-        {
-            createNewDatabase();
-            connectToDatabase();
-            createTable();
-            fillTable();
-            printBodySoup();
-        }
+		//inserting data
+		string sql2 = "insert into bodysoup_main (GestureCompleted, kinnectjoint) values ('test1', 3000)";
+		SqliteCommand command2 = new SqliteCommand(sql2, dbconn);
+		command2.ExecuteNonQuery();
 
-        // Creates an empty database file
-        void createNewDatabase()
-        {
-            //SqliteConnection.CreateFile("MyDatabase.sqlite");
-        }
+		//reading info
+		try {
+			SqliteCommand cmd = new SqliteCommand("SELECT GestureCompleted FROM bodysoup_main", dbconn);
+			SqliteDataReader reader = cmd.ExecuteReader();
+				
+			while (reader.Read()) {
+				Debug.Log ("yes");
+				Console.WriteLine("GestureCompleted: " + reader["GestureCompleted"] + "\t  KinnectJoint: " + reader["kinnectjoint"]);
+				Console.ReadLine();
+			}
 
-        // Creates a connection with our database file.
-        void connectToDatabase()
-        {
-            _Database = new SqliteConnection("Data Source=MyDatabase.sqlite;Version=3;");
-            _Database.Open();
-        }
+			reader.Close();
+			reader = null;
+				
+			cmd.Dispose();
+			cmd = null;
+			dbconn.Close();
+			dbconn = null;
 
-        // Creates a table named 'bodysoup' with 2 colums
-        void createTable()
-        {
-            //string sql = "create table bodysoup_main (id int(11), GestureCompleted varchar(255), kinnectjoint int)";
-            //SQLiteCommand command = new SQLiteCommand(sql, m_dbConnection);
-            //command.ExecuteNonQuery();
-        }
-
-        // Inserts some values in the bodysoup table.
-        // As you can see, there is quite some duplicate code here, we'll solve this in part two.
-        void fillTable()
-        {
-            //string sql = "insert into bodysoup_main (GestureCompleted, kinnectjoint) values ('test1', 3000)";
-            //SQLiteCommand command = new SQLiteCommand(sql, m_dbConnection);
-            //command.ExecuteNonQuery();
-            //sql = "insert into bodysoup_main (GestureCompleted, kinnectjoint) values ('test2', 6000)";
-            //command = new SQLiteCommand(sql, m_dbConnection);
-            //command.ExecuteNonQuery();
-            //sql = "insert into bodysoup_main (GestureCompleted, kinnectjoint) values ('test3', 9001)";
-            //command = new SQLiteCommand(sql, m_dbConnection);
-            //command.ExecuteNonQuery();
-        }
-
-        void printBodySoup()
-        {
-            //string sql = "select * from bodysoup_main order by id desc";
-            //SQLiteCommand command = new SQLiteCommand(sql, m_dbConnection);
-            //SQLiteDataReader reader = command.ExecuteReader();
-            //while (reader.Read())
-                //Console.WriteLine("GestureCompleted: " + reader["GestureCompleted"] + "\t  KinnectJoint: " + reader["kinnectjoint"]);
-            //Console.ReadLine();
-        }
-    }
+		} catch {
+			Debug.Log ("nope");
+			Console.WriteLine("fail");
+			Console.ReadLine();
+		}
+	}
 }
