@@ -25,12 +25,12 @@ public class UnityBody : MonoBehaviour {
     public static Dictionary<JointType, List<JointType>> boneMap = new Dictionary<JointType, List<JointType>>()
     {
         
-        { JointType.FootLeft, new List<JointType>(){JointType.AnkleLeft} },
+        //{ JointType.FootLeft, new List<JointType>(){JointType.AnkleLeft} },
         //{ JointType.AnkleLeft, JointType.KneeLeft },
         //{ JointType.KneeLeft, JointType.HipLeft },
         { JointType.HipLeft, new List<JointType>(){JointType.SpineBase} },
         
-        { JointType.FootRight, new List<JointType>(){JointType.AnkleRight} },
+        //{ JointType.FootRight, new List<JointType>(){JointType.AnkleRight} },
         //{ JointType.AnkleRight, JointType.KneeRight },
         //{ JointType.KneeRight, JointType.HipRight },
         { JointType.HipRight, new List<JointType>(){JointType.SpineBase} },
@@ -52,6 +52,6 @@ public class UnityBody : MonoBehaviour {
         { JointType.SpineBase, new List<JointType>(){JointType.SpineMid} },
         { JointType.SpineMid, new List<JointType>(){JointType.SpineShoulder} },
         //{ JointType.SpineShoulder, JointType.Neck },
-        { JointType.Neck, new List<JointType>(){JointType.Head} }
+        { JointType.Neck, new List<JointType>(){JointType.Neck} }
     };
 }
