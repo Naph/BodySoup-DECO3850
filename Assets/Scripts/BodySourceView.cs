@@ -2,19 +2,24 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using Kinect = Windows.Kinect;
+using Windows.Kinect;
+using KinectJoint = Windows.Kinect.Joint;
 
 public class BodySourceView : MonoBehaviour 
 {
     public GameObject BodySourceManager;
-    public Material matter;
 
-    private Dictionary<ulong, GameObject> _Bodies = new Dictionary<ulong, GameObject>();
+    private Dictionary<ulong, PlayerBody> _Bodies = new Dictionary<ulong, PlayerBody>();
     private BodySourceManager _BodyManager;
+    private Body[] bodies;
 
     private int interval = 1;
     private int maxInterval = 6;
 
+    public Material redMaterial;
+    public Material greenMaterial;
+    public GameObject fireshield;
+    
 	void Update()
     {
         if (BodySourceManager == null)
@@ -28,7 +33,7 @@ public class BodySourceView : MonoBehaviour
             return;
         }
 
-        Kinect.Body[] bodies = _BodyManager.getBodies();
+        bodies = _BodyManager.getBodies();
         if (bodies == null)
         {
             return;
@@ -58,7 +63,7 @@ public class BodySourceView : MonoBehaviour
         {
             if (!trackedIds.Contains(trackingId))
             {
-                Destroy(_Bodies[trackingId]);
+                _Bodies[trackingId].DestroyBody();
                 _Bodies.Remove(trackingId);
             }
         }
@@ -85,60 +90,39 @@ public class BodySourceView : MonoBehaviour
                 }
 
                 RefreshBody(body, _Bodies[body.TrackingId]);
+                TrackGesture(_Bodies[body.TrackingId]);
             }
         }
 	}
 
     //TODO: Add capsule collider to body torso
-    private GameObject CreateBodyObject(ulong id)
+    private PlayerBody CreateBodyObject(ulong id)
     {
-        GameObject body = new GameObject("Body: " + id);
-
-        for (Kinect.JointType jt = Kinect.JointType.SpineBase; jt <= Kinect.JointType.ThumbRight; jt++)
-        {
-            GameObject jointRender = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            LineRenderer lr = jointRender.AddComponent<LineRenderer>();
-            lr.enabled = false;
-            lr.SetWidth(0.05f, 0.05f);
-            jointRender.transform.localPosition = new Vector3(99, 99, 99);
-            Renderer rnd = jointRender.gameObject.GetComponent<Renderer>();
-
-            rnd.material = matter;
-            
-            jointRender.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
-            jointRender.name = jt.ToString();
-            jointRender.transform.parent = body.transform;
-        }
-
-        return body;
+        return new PlayerBody(id, greenMaterial, redMaterial);
     }
 
-    //TODO: Udpate capsule collider to body torso
-    private void RefreshBody(Kinect.Body body, GameObject bodyObject)
+    //TODO: Update capsule collider to body torso
+    private void RefreshBody(Body body, PlayerBody playerBody)
     {
-        Dictionary<Kinect.JointType, List<Kinect.JointType>> boneMap = UnityBody.boneMap;
+        playerBody.RefreshBody(body);
+    }
 
-        for (Kinect.JointType jt = Kinect.JointType.SpineBase; jt <= Kinect.JointType.ThumbRight; jt++)
+    private void TrackGesture(PlayerBody playerBody) {
+
+        UnityBody unityBody= new UnityBody(playerBody.bodyObject);
+        Dictionary<LigDir, Vector3> joints = unityBody.joints;
+
+        Renderer rnd = gameObject.GetComponent<Renderer>();
+
+        if (isTPose(joints, 0.50f))
         {
-            Kinect.Joint sourceJoint = body.Joints[jt];
-
-            if (boneMap.ContainsKey(jt))
-            {
-                List<Kinect.JointType> targetJoints = boneMap[jt];
-
-                foreach (Kinect.JointType target in targetJoints)
-                {
-                    Transform jointObj = bodyObject.transform.FindChild(jt.ToString());
-                    jointObj.localPosition = GetJointPosition(sourceJoint);
-                    
-
-                    LineRenderer lr = jointObj.GetComponent<LineRenderer>();
-                    lr.SetPosition(0, jointObj.localPosition);
-                    lr.SetPosition(1, GetJointPosition(body.Joints[target]));
-                    lr.SetColors(Color.magenta, Color.magenta);
-                    lr.enabled = true;
-                }
-            }
+            playerBody.inGesture = true;
+            playerBody.SetMaterial(fireshield);
+        }
+        else
+        {
+            playerBody.inGesture = false;
+            playerBody.SetMaterial(fireshield);
         }
     }
 
@@ -154,7 +138,7 @@ public class BodySourceView : MonoBehaviour
 
     private void CaptureBodyFrame()
     {
-        string s = new string('.', interval*5);
+        string s = new string('.', interval * 5);
 
         if (interval < 5)
         {
@@ -163,42 +147,24 @@ public class BodySourceView : MonoBehaviour
         }
         else
         {
-            using (StreamWriter file =
-                new StreamWriter(@"..\CapturedBodyFrames.txt", true))
+            string output = "";
+
+            for (int i = 0; i < bodies.Length; i++)
             {
-                List<string> lines = new List<string>{"Dictionary<Vector3, UnityJoint> JointPositions = ",
-                    "\tnew Dictionary<Vector3, UnityJoint>{"};
-                
-                Kinect.Body[] bodies = _BodyManager.getBodies();
-                for (int i = 0; i < bodies.Length; i++)
+                var body = bodies[i];
+
+                if (body == null)
                 {
-                    var body = bodies[i];
-
-                    if (body == null)
-                    {
-                        continue;
-                    }
-
-                    if (body.IsTracked)
-                    {
-                        for (Kinect.JointType jt = Kinect.JointType.SpineBase; jt <= Kinect.JointType.ThumbRight; jt++)
-                        {
-                            if (jt != Kinect.JointType.ThumbRight)
-                            {
-                                lines.Add("\t{ Vector3" + GetJointPosition(body.Joints[jt]) + ", JointType." + jt + " },");
-                            }
-                            else
-                            {
-                                lines.Add("\t{ Vector3" + GetJointPosition(body.Joints[jt]) + ", JointType." + jt + " }");
-                                lines.Add("};");
-                            }
-                        }
-                    }
+                    continue;
                 }
-                
-                foreach (string line in lines)
-                    file.WriteLine(line);
+
+                if (body.IsTracked)
+                {
+                    UnityBody unityBody = new UnityBody(_Bodies[body.TrackingId].bodyObject);
+                    output = unityBody.ToFileString();
+                }
             }
+            File.AppendAllText(@"../CapturedBodyFrames.txt", output);
 
             Debug.Log("Captured");
             interval = 1;
@@ -206,9 +172,30 @@ public class BodySourceView : MonoBehaviour
         }
     }
 
-
-    private static Vector3 GetJointPosition(Kinect.Joint joint)
+    public float dist(Vector3 v1, Vector3 v2)
     {
-        return new Vector3(joint.Position.X * 5, joint.Position.Y * 5, joint.Position.Z);
+        return Vector3.Distance(v1, v2);
     }
+
+    public bool isTPose(Dictionary<LigDir, Vector3> ligDirDict, float fudgeFactor)
+    {
+        foreach (KeyValuePair<LigDir, Vector3> pair in tPose)
+        {
+            if ( dist(pair.Value, ligDirDict[pair.Key]) > fudgeFactor )
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private Dictionary<LigDir, Vector3> tPose = new Dictionary<LigDir, Vector3>()
+    {
+        { LigDir.LeftUpperArm, new Vector3(-0.8246481f, 0.5656461f, 0) },
+        { LigDir.LeftLowerArm, new Vector3(0f, 0f, 0) },
+        { LigDir.LeftHand, new Vector3(0.8958837f, 0.4442886f, 0) },
+        { LigDir.RightUpperArm, new Vector3(0.7573851f, 0.6529684f, 0) },
+        { LigDir.RightLowerArm, new Vector3(0f, 0f, 0) },
+        { LigDir.RightHand, new Vector3(-0.8720062f, 0.4894949f, 0) }
+    };
 }
