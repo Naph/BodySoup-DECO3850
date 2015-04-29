@@ -1,2 +1,12 @@
-Temp
-obj
+# Ignore everything
+*
+
+# But not these files...
+!.git
+!.gitignore
+!.gitattributes
+!Assets
+# etc...
+
+# ...even if they are in subdirectories
+!*/
