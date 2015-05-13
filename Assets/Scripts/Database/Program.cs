@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System;
 using System.Data;
-using Mono.Data.SqliteClient;
+using Mono.Data.Sqlite;
 
 public class Program {
 	

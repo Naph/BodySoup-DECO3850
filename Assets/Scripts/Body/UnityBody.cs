@@ -8,7 +8,7 @@ using System.Text;
 
 public class UnityBody : MonoBehaviour {
     
-    public Dictionary<LigDir, Vector3> joints
+    public Dictionary<LigDir, Vector3> jointPositions
     {
         get;
         set;
@@ -43,7 +43,7 @@ public class UnityBody : MonoBehaviour {
         Vector3 RightHand = (HandRight - WristRight).normalized;
 
         // Construct joints
-        joints = new Dictionary<LigDir, Vector3>()
+        jointPositions = new Dictionary<LigDir, Vector3>()
         {
             {LigDir.LeftUpperArm, LeftUpperArm},
             {LigDir.LeftLowerArm, LeftLowerArm},
@@ -54,11 +54,30 @@ public class UnityBody : MonoBehaviour {
         };
     }
 
+
+    public bool CompareJoints(Dictionary<LigDir, Vector3> position)
+    {
+        foreach (KeyValuePair<LigDir, Vector3> pair in this.jointPositions)
+        {
+            if (position[pair.Key] == null)
+            {
+                continue;
+            }
+
+            if (!pair.Value.Equals(position[pair.Key]))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
     public string ToFileString()
     {
         string output = "";
 
-        foreach (KeyValuePair<LigDir, Vector3> pair in joints)
+        foreach (KeyValuePair<LigDir, Vector3> pair in jointPositions)
         {
             if (pair.Key != LigDir.RightHand)
             {

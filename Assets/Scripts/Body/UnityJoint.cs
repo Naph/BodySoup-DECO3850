@@ -5,13 +5,21 @@ using Windows.Kinect;
 
 public class UnityJoint : MonoBehaviour {
 
-    public JointType jointType;
-    public TrackingState trackingState;
+    public LigDir ligament;
+    public Vector3 direction;
 
-    public UnityJoint(JointType jointType)
+    public UnityJoint(LigDir ligament, Vector3 direction)
     {
-        this.jointType = jointType;
-        trackingState = TrackingState.NotTracked;
+        this.ligament = ligament;
+        this.direction = direction;
+    }
+
+    public bool Equals(UnityJoint joint)
+    {
+        if (joint.direction == this.direction && joint.ligament == this.ligament)
+            return true;
+        else
+            return false;
     }
 
 }
