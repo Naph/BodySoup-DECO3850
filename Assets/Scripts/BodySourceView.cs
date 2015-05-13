@@ -15,7 +15,6 @@ public class BodySourceView : MonoBehaviour
     private Body[] kinectBodies;
 
     private int interval = 1;
-    private int maxInterval = 6;
 
     public Material redMaterial;
     public Material greenMaterial;
@@ -44,31 +43,24 @@ public class BodySourceView : MonoBehaviour
             new Gesture.SubGesture(Position.TPose, JointType.SpineMid, true, Effect.Instance.WaterShield, 0.35f, 4f);
 
         List<Gesture.SubGesture> fireshieldGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
-            fireshieldFirst, watershieldFirst});
+            fireshieldFirst, watershieldFirst });
         Gesture fireshield = new Gesture(fireshieldGesture, false);
         _Gestures.Add(fireshield);
 
-        // KAMEHAMEHA RIGHT
-        Gesture.SubGesture kamehamehaFirstRight =
-            new Gesture.SubGesture(Position.ChargingKamehamehaRight, JointType.HandRight, true, Effect.Instance.WindWorks, 0.60f, 4f);
+        // KAMEHAMEHA
+        Gesture.SubGesture kamehamehaFirst =
+            new Gesture.SubGesture(Position.ChargingKamehameha, JointType.HandLeft, true, Effect.Instance.WindWorks, 0.60f, 4f);
+            // RIGHT
         Gesture.SubGesture kamehamehaSecondRight =
-            new Gesture.SubGesture(Position.ShootingKamehamehaRight, JointType.HandRight, JointType.SpineMid, false, Effect.Instance.Kamehameha, 0.80f, 2f);
-
-        List<Gesture.SubGesture> kamehamehaGestureRight = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
-            kamehamehaFirstRight, kamehamehaSecondRight});
-        Gesture kamehamehaRight = new Gesture(kamehamehaGestureRight, false);
-        _Gestures.Add(kamehamehaRight);
-
-        // KAMEHAMEHA LEFT
-        Gesture.SubGesture kamehamehaFirstLeft =
-            new Gesture.SubGesture(Position.ChargingKamehamehaLeft, JointType.HandLeft, true, Effect.Instance.WindWorks, 0.60f, 4f);
+            new Gesture.SubGesture(Position.KamehamehaRight, JointType.HandLeft, JointType.SpineMid, false, Effect.Instance.Kamehameha, 0.30f, 2f);
+            // LEFT
         Gesture.SubGesture kamehamehaSecondLeft =
-            new Gesture.SubGesture(Position.ShootingKamehamehaLeft, JointType.HandLeft, JointType.SpineMid, false, Effect.Instance.Kamehameha, 0.80f, 2f);
+            new Gesture.SubGesture(Position.KamehamehaLeft, JointType.HandRight, JointType.SpineMid, false, Effect.Instance.Kamehameha, 0.30f, 2f);
 
-        List<Gesture.SubGesture> kamehamehaGestureLeft = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
-            kamehamehaFirstLeft, kamehamehaSecondLeft});
-        Gesture kamehamehaLeft = new Gesture(kamehamehaGestureLeft, false);
-        _Gestures.Add(kamehamehaLeft);
+        List<Gesture.SubGesture> kamehamehaGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
+            kamehamehaFirst, kamehamehaSecondLeft, kamehamehaSecondRight });
+        Gesture kamehameha = new Gesture(kamehamehaGesture, false, true);
+        _Gestures.Add(kamehameha);
     }
 
 
@@ -181,7 +173,7 @@ public class BodySourceView : MonoBehaviour
     {
         for (int i = 0; i < _Gestures.Count; i++)
         {
-            if (player.ComparePosition(_Gestures[i].First))
+            if (player.ComparePosition(_Gestures[i].first))
             {
                 player.inGesture = true;
                 player.StartGesture(_Gestures[i]);

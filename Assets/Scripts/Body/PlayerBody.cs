@@ -231,8 +231,11 @@ public class PlayerBody {
 
         if (currentSubGesture + 1 == currentGesture.count)
         {
-            activeEffect.GetComponentInChildren<ParticleSystem>().startSize *= chargeTimer;
-            activeEffect.GetComponentInChildren<ParticleSystem>().Play();
+            if (activeEffect.GetComponent<ParticleSystem>() != null)
+            {
+                activeEffect.GetComponent<ParticleSystem>().startSize *= chargeTimer;
+                activeEffect.GetComponent<ParticleSystem>().Play();
+            }
         }
 
         chargeTimer = 1f;
@@ -251,7 +254,7 @@ public class PlayerBody {
         }
     }
 
-
+    // ambidexterity means currentGesture.count - 1 == currentGesture.count - 2 
     public void UpdateGesture()
     {
         if (currentGesture != null)
@@ -304,6 +307,21 @@ public class PlayerBody {
 
     public bool ComparePosition(Gesture.SubGesture gesture)
     {
+    /* if ( gesture == currentGesture.subGestures[currentSubGesture] &&
+            currentGesture.ambidexterity &&
+            currentSubGesture == currentGesture.count - 2) 
+       {
+           foreach (KeyValuePair<LigDir, Vector3> pair in this.jointPositions)
+           {
+               if (dist(pair.Value, gesture.position[pair.Key]) > gesture.fudgeFactor ||
+                   dist(pair.Value, currentGesture.subGesture[currentSubGesture + 1].position[pair.Key]) > gesture.fudgeFactor)
+               {
+                   return false;
+               }
+           }
+       } */
+
+
         foreach (KeyValuePair<LigDir, Vector3> pair in this.jointPositions)
         {
             if (dist(pair.Value, gesture.position[pair.Key]) > gesture.fudgeFactor)

@@ -8,6 +8,7 @@ public class Gesture {
 
     public List<SubGesture> subGestures;
     public bool repeatable;
+    public bool ambidexterity;
     int curStep;
 
     public Gesture(List<SubGesture> subGestures, bool repeatable)
@@ -18,9 +19,12 @@ public class Gesture {
     }
 
 
-    public void AddGesture(SubGesture newGesture)
+    public Gesture(List<SubGesture> subGestures, bool repeatable, bool ambidexterity)
     {
-        this.subGestures.Add(newGesture);
+        this.subGestures = subGestures;
+        this.repeatable = repeatable;
+        this.ambidexterity = ambidexterity;
+        curStep = 0;
     }
 
     public int count
@@ -46,7 +50,7 @@ public class Gesture {
         }
     }
 
-    public SubGesture First
+    public SubGesture first
     {
         get { return this.subGestures[0]; }
     }
