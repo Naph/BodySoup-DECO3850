@@ -6,6 +6,7 @@
 !.gitignore
 !.gitattributes
 !Assets
+!Assets/*
 # etc...
 
 # ...even if they are in subdirectories
