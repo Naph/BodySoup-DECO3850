@@ -304,7 +304,7 @@ public class PlayerBody {
                 currentGesture.subGestures.Contains(gesture) &&
                 gesture == currentGesture.subGestures[currentGesture.subGestures.Count - 2])
             {
-                if (dist(pair.Value, currentGesture.subGestures[currentSubGesture + 2].position[pair.Key]) < gesture.fudgeFactor ||
+                if (dist(pair.Value, currentGesture.subGestures[currentSubGesture + 1].position[pair.Key]) < gesture.fudgeFactor ||
                     dist(pair.Value, gesture.position[pair.Key]) < gesture.fudgeFactor)
                 {
                     isAmbidextrous = false;
