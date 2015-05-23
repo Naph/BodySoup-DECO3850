@@ -17,6 +17,10 @@ public class Effect : MonoBehaviour {
     public GameObject FireShield;
     public GameObject WaterShield;
     public GameObject CrackParent;
-    public GameObject WindWorks;
+    public GameObject Shirohige;
+    public GameObject Kame;
     public GameObject Kamehameha;
+    public GameObject IronMan;
+    public GameObject Wings;
+    public GameObject Lightning;
 }

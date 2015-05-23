@@ -307,19 +307,20 @@ public class PlayerBody {
 
     public bool ComparePosition(Gesture.SubGesture gesture)
     {
-    /* if ( gesture == currentGesture.subGestures[currentSubGesture] &&
+        if ( currentGesture != null &&
+            gesture == currentGesture.subGestures[currentSubGesture] &&
             currentGesture.ambidexterity &&
             currentSubGesture == currentGesture.count - 2) 
-       {
-           foreach (KeyValuePair<LigDir, Vector3> pair in this.jointPositions)
-           {
-               if (dist(pair.Value, gesture.position[pair.Key]) > gesture.fudgeFactor ||
-                   dist(pair.Value, currentGesture.subGesture[currentSubGesture + 1].position[pair.Key]) > gesture.fudgeFactor)
-               {
-                   return false;
-               }
-           }
-       } */
+        {
+            foreach (KeyValuePair<LigDir, Vector3> pair in this.jointPositions)
+            {
+                if (dist(pair.Value, gesture.position[pair.Key]) > gesture.fudgeFactor ||
+                    dist(pair.Value, currentGesture.subGestures[currentSubGesture + 1].position[pair.Key]) > gesture.fudgeFactor)
+                {
+                    return false;
+                }
+            }
+        }
 
 
         foreach (KeyValuePair<LigDir, Vector3> pair in this.jointPositions)
