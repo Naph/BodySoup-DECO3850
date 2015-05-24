@@ -64,6 +64,17 @@ public class Position {
         { LigDir.RightHand,     new Vector3(0.9980134f, 0.06300332f, 0f) }
     };
 
+    public static Dictionary<LigDir, Vector3> ChargingKamehamehaMid =
+      new Dictionary<LigDir, Vector3>()
+    {  
+		{ LigDir.LeftUpperArm,  new Vector3(-0.3339442f, -0.9425929f, 0f) },
+		{ LigDir.LeftLowerArm,  new Vector3(0.9454747f, 0.3256955f, 0f) },
+		{ LigDir.LeftHand,      Vector3.zero },
+		{ LigDir.RightUpperArm, new Vector3(0.4051847f, -0.9142349f, 0f) },
+		{ LigDir.RightLowerArm, new Vector3(-0.9389423f, 0.3440746f, 0f) },
+		{ LigDir.RightHand,     Vector3.zero }
+    };
+
     public static Dictionary<LigDir, Vector3> ChargingKamehamehaRL =
         new Dictionary<LigDir, Vector3>()
     {  

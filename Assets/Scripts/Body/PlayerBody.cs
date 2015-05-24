@@ -6,19 +6,22 @@ using KinectJoint = Windows.Kinect.Joint;
 
 public class PlayerBody {
 
-    public bool inGesture = false;
-    private Gesture.SubGesture prevGesture;
     public Material redMaterial;
     public Material greenMaterial;
     
     public GameObject bodyObject;
-    private GameObject activeEffect;
-    private Transform activeJoint;
-    private List<string> effectRotation;
-    private bool pairedToJoint;
+    private Dictionary<Gesture, ActiveEffect> activeEffects;
+    //private Transform activeJoint;
+    //private List<string> effectRotation;
+    //private bool pairedToJoint;
 
-    private float chargeTimer = 1f;
-    private float chargeMagnitude = 0.05f;
+    private Gesture currentGesture;
+    private int currentSubGesture;
+    public bool inGesture = false;
+    public bool isAmbidextrous = false;
+
+    //private float chargeTimer = 1f;
+    //private float chargeMagnitude = 0.05f;
 
     private List<GameObject> renderedJoints;
     private List<string> nonRender = new List<string>(new string[] { 
@@ -42,18 +45,14 @@ public class PlayerBody {
     private Vector3 LeftLowerArm;
     private Vector3 LeftHand;
 
-    private Gesture currentGesture;
-    private int currentSubGesture;
-
     private Dictionary<LigDir, Vector3> jointPositions;
-
-    private int layer;
 
     public PlayerBody(ulong id, Material green, Material red)
     {
         this.bodyObject = new GameObject("Body: " + id);
         this.renderedJoints = new List<GameObject>();
-        this.effectRotation = new List<string>();
+        this.activeEffects = new Dictionary<Gesture, ActiveEffect>();
+        //this.effectRotation = new List<string>();
 
         redMaterial = red;
         greenMaterial = green;
@@ -89,8 +88,7 @@ public class PlayerBody {
         }
     }
 
-
-    public void RefreshBody(Body body)
+    private void RefreshJoints(Body body)
     {
         // Refresh visual representation of Kinect body
         for (JointType jt = JointType.SpineBase; jt <= JointType.ThumbRight; jt++)
@@ -109,7 +107,7 @@ public class PlayerBody {
                     Renderer rnd = jointObj.gameObject.GetComponent<Renderer>();
                     rnd.material = redMaterial;
 
-                    if(currentGesture != null)
+                    if (currentGesture != null)
                     {
                         if (ComparePosition(currentGesture.subGestures[currentSubGesture]))
                         {
@@ -132,14 +130,11 @@ public class PlayerBody {
                 }
             }
         }
+    }
 
-        UpdateGesture();
 
-        if (activeEffect != null && activeJoint != null && pairedToJoint)
-        {
-            UpdateGesturePosition();
-        }
-
+    public void RefreshBody(Body body)
+    {
         // Local positions of left joints
         ShoulderLeft  = bodyObject.transform.FindChild("ShoulderLeft");
         ElbowLeft     = bodyObject.transform.FindChild("ElbowLeft");
@@ -163,6 +158,12 @@ public class PlayerBody {
         LeftHand      = (HandLeft.localPosition - WristLeft.localPosition).normalized;
 
         InstantiateDict();
+
+        RefreshJoints(body);
+
+        UpdateGesture();
+
+        UpdateEffectPositions();
     }
 
     private void InstantiateDict()
@@ -178,24 +179,25 @@ public class PlayerBody {
         };
     }
 
+    /// <summary>
+    /// Start a new Gesture
+    /// Called from BodySourceView when a body enters the first position
+    /// of any gesture.
+    /// </summary>
+    /// <param name="gesture">Gesture this PlayerBody has entered</param>
     public void StartGesture(Gesture gesture)
     {
         if (currentGesture != null)
         {
-            if (activeEffect != null)
+            if (currentGesture != gesture && currentSubGesture == 0)
             {
-                if (currentGesture != gesture)
+                ExecuteGesture(gesture, 0);
+            }
+            else
+            {
+                if (gesture.repeatable && currentSubGesture != 0)
                 {
-                    activeJoint = null;
-                    MonoBehaviour.Destroy(activeEffect);
                     ExecuteGesture(gesture, 0);
-                }
-                else
-                {
-                    if (currentSubGesture != 0 && gesture.repeatable)
-                    {
-                        ExecuteGesture(gesture, 0);
-                    }
                 }
             }
         }
@@ -212,121 +214,107 @@ public class PlayerBody {
         currentGesture = gesture;
         currentSubGesture = index;
 
-        SetEffect(gesture.subGestures[index].effect,
-                  gesture.subGestures[index].jointTracked,
-                  gesture.subGestures[index].directionOrigin,
-                  gesture.subGestures[index].pairedToJoint,
-                  gesture.subGestures[index].timeout);
-    }
+        var subGesture = gesture.subGestures[index];
+        var effect = new ActiveEffect(
+                subGesture.effect,
+                subGesture.jointTracked,
+                this.bodyObject.transform.FindChild(subGesture.jointTracked).position,
+                subGesture.directionOrigin,
+                subGesture.pairedToJoint,
+                subGesture.timeout);
 
-
-    public void SetEffect(GameObject effect, String joint, String origin, bool paired, float timeout)
-    {
-        pairedToJoint = paired;
-        activeJoint = this.bodyObject.transform.FindChild(joint);
-        effectRotation.Clear();
-
-        activeEffect = (GameObject)MonoBehaviour.Instantiate(effect, new Vector3(0f, 999f, 0f), Quaternion.identity);
-        MonoBehaviour.Destroy(activeEffect, timeout);
-
-        if (currentSubGesture + 1 == currentGesture.count)
+        if (activeEffects.ContainsKey(currentGesture))
         {
-            if (activeEffect.GetComponent<ParticleSystem>() != null)
-            {
-                activeEffect.GetComponent<ParticleSystem>().startSize *= chargeTimer;
-                activeEffect.GetComponent<ParticleSystem>().Play();
-            }
+            activeEffects[currentGesture].Destroy();
+
+            activeEffects[currentGesture] = effect;
         }
-
-        chargeTimer = 1f;
-
-        if (!pairedToJoint)
+        else
         {
-            UpdateGesturePosition();
+            activeEffects.Add(gesture, effect);
         }
-
-        if (!origin.Equals("Unset"))
+        
+        effect.UpdateEffect(this.bodyObject);
+        
+        if (!subGesture.directionOrigin.Equals("Unset"))
         {
-            effectRotation.Insert(0, origin);
-            effectRotation.Insert(1, joint);
-
-            EffectRotation();
+            effect.EffectRotation(this.bodyObject);
         }
     }
 
-    // ambidexterity means currentGesture.count - 1 == currentGesture.count - 2 
+
     public void UpdateGesture()
     {
         if (currentGesture != null)
         {
-            if (currentSubGesture + 1 < currentGesture.count)
+            if (currentSubGesture + 1 < currentGesture.count) // if not last
             {
                 if (ComparePosition(currentGesture.subGestures[currentSubGesture + 1]))
                 {
-                    // Entered next SubGesture in current Gesture
-                    MonoBehaviour.Destroy(activeEffect);
                     currentSubGesture++;
                     ExecuteGesture(currentGesture, currentSubGesture);
                 }
-
+                /*
                 if (ComparePosition(currentGesture.subGestures[currentSubGesture]))
                 {
                     // Holding SubGesture position
                     chargeTimer += chargeMagnitude;
                 }
+                */
             }
-            else
+            else // if last
             {
-                if (ComparePosition(currentGesture.subGestures[currentSubGesture]))
+                if (!ComparePosition(currentGesture.subGestures[currentSubGesture])) // if left last
                 {
                     currentGesture = null;
                 }
             }
         }
-
-        if (activeEffect == null)
-        {
-            currentGesture = null;
-            currentSubGesture = 0;
-            chargeTimer = 1f;
-        }
     }
 
 
-    private void UpdateGesturePosition()
+    private void UpdateEffectPositions()
     {
-        Vector3 pos = activeJoint.position;
-        activeEffect.transform.position = pos;
+        foreach (KeyValuePair<Gesture, ActiveEffect> activeEffect in activeEffects) {
 
-        if (effectRotation.Count > 1)
-        {
-            EffectRotation();
+            if (activeEffect.Value.effect != null)
+            {
+                activeEffect.Value.UpdateEffect(bodyObject);
+            }
+            else
+            {
+                RemoveActiveEffect(activeEffect.Key);
+                break;
+            }
         }
     }
     
 
     public bool ComparePosition(Gesture.SubGesture gesture)
     {
-        if ( currentGesture != null &&
-            gesture == currentGesture.subGestures[currentSubGesture] &&
-            currentGesture.ambidexterity &&
-            currentSubGesture == currentGesture.count - 2) 
+        if (currentGesture == null && inGesture == true)
         {
-            foreach (KeyValuePair<LigDir, Vector3> pair in this.jointPositions)
-            {
-                if (dist(pair.Value, gesture.position[pair.Key]) > gesture.fudgeFactor ||
-                    dist(pair.Value, currentGesture.subGestures[currentSubGesture + 1].position[pair.Key]) > gesture.fudgeFactor)
-                {
-                    return false;
-                }
-            }
+            return false;
         }
-
-
+        
         foreach (KeyValuePair<LigDir, Vector3> pair in this.jointPositions)
         {
+
+            if (isAmbidextrous && 
+                currentGesture.subGestures.Contains(gesture) &&
+                gesture == currentGesture.subGestures[currentGesture.subGestures.Count - 2])
+            {
+                if (dist(pair.Value, currentGesture.subGestures[currentSubGesture + 2].position[pair.Key]) < gesture.fudgeFactor ||
+                    dist(pair.Value, gesture.position[pair.Key]) < gesture.fudgeFactor)
+                {
+                    isAmbidextrous = false;
+                    return true;
+                }
+            }
+
             if (dist(pair.Value, gesture.position[pair.Key]) > gesture.fudgeFactor)
             {
+                inGesture = false;
                 return false;
             }
         }
@@ -335,42 +323,32 @@ public class PlayerBody {
     }
 
 
-    public void EffectRotation()
-    {
-        Vector3 from = bodyObject.transform.FindChild(effectRotation[0]).localPosition;
-        Vector3 to = bodyObject.transform.FindChild(effectRotation[1]).localPosition;
-
-        Vector3 pos = (from - to).normalized;
-        Vector3 rotation = pos * 90;
-
-        Vector3 effect = activeEffect.transform.localPosition;
-        effect.y += pos.y * -1.05f;
-        effect.x += pos.x * -1.05f;
-
-        if (from.y > to.y)
-        {
-            rotation.y = 90f;
-            rotation.x = rotation.x + 90f;
-        }
-        else
-        {
-            rotation.y = -90f;
-            rotation.x = rotation.x - 90f;
-        }
-
-        activeEffect.transform.rotation = Quaternion.Euler(rotation);
-        activeEffect.transform.localPosition = effect;
-    }
-
-
     public void DestroyBody()
     {
+        if (activeEffects.Count > 0)
+        {
+            foreach (KeyValuePair<Gesture, ActiveEffect> effect in activeEffects)
+            {
+                effect.Value.Destroy();
+            }
+            activeEffects.Clear();
+        }
+
         MonoBehaviour.Destroy(this.bodyObject);
-        MonoBehaviour.Destroy(this.activeEffect);
     }
 
 
-    private static Vector3 GetJointVector3(KinectJoint joint)
+    public void RemoveActiveEffect(Gesture gesture)
+    {
+        activeEffects.Remove(gesture);
+        if (currentGesture == gesture)
+        {
+            currentGesture = null;
+            currentSubGesture = 0;
+        }
+    }
+
+     private static Vector3 GetJointVector3(KinectJoint joint)
     {
         return new Vector3(joint.Position.X * 5, joint.Position.Y * 5, 5);
     }

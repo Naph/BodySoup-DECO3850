@@ -47,19 +47,22 @@ public class BodySourceView : MonoBehaviour
         Gesture fireshield = new Gesture(fireshieldGesture, false);
         _Gestures.Add(fireshield);
 
-        // KAMEHAMEHA LEFT TO RIGHT
+        
         Gesture.SubGesture kamehamehaFirstLR =
             new Gesture.SubGesture(Position.ChargingKamehamehaLR, JointType.HandLeft, true, Effect.Instance.Kame, 0.60f, 3f);
-        // RIGHT TO LEFT
+        
         Gesture.SubGesture kamehamehaFirstRL =
             new Gesture.SubGesture(Position.ChargingKamehamehaRL, JointType.HandLeft, true, Effect.Instance.Kame, 0.60f, 3f);
-            // RIGHT
+        
+        Gesture.SubGesture kamehamehaFirst =
+            new Gesture.SubGesture(Position.ChargingKamehamehaMid, JointType.HandLeft, true, Effect.Instance.Kame, 0.60f, 3f);
+        
         Gesture.SubGesture kamehamehaSecondRight =
             new Gesture.SubGesture(Position.KamehamehaRight, JointType.HandLeft, JointType.SpineMid, false, Effect.Instance.Kamehameha, 0.50f, 3f);
-            // LEFT
+        
         Gesture.SubGesture kamehamehaSecondLeft =
             new Gesture.SubGesture(Position.KamehamehaLeft, JointType.HandLeft, JointType.SpineMid, false, Effect.Instance.Kamehameha, 0.50f, 3f);
-
+        /*
         List<Gesture.SubGesture> kamehamehaLeftGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
             kamehamehaFirstRL, kamehamehaSecondLeft });
         Gesture kamehamehaLeft = new Gesture(kamehamehaLeftGesture, true);
@@ -69,6 +72,13 @@ public class BodySourceView : MonoBehaviour
             kamehamehaFirstLR, kamehamehaSecondRight });
         Gesture kamehamehaRight = new Gesture(kamehamehaRightGesture, true);
         _Gestures.Add(kamehamehaRight);
+        */
+
+        // Kamehameha
+        List<Gesture.SubGesture> kamehamehaGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
+            kamehamehaFirst, kamehamehaSecondRight, kamehamehaSecondLeft });
+        Gesture kamehameha = new Gesture(kamehamehaGesture, true, true);
+        _Gestures.Add(kamehameha);
 
         // Wings
         Gesture.SubGesture Wings =
@@ -214,6 +224,7 @@ public class BodySourceView : MonoBehaviour
             if (player.ComparePosition(_Gestures[i].first))
             {
                 player.inGesture = true;
+                player.isAmbidextrous = _Gestures[i].ambidexterity;
                 player.StartGesture(_Gestures[i]);
                 break;
             }

@@ -66,6 +66,15 @@ public class Gesture {
         public float fudgeFactor;
         public float timeout;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="position">Position of gesture</param>
+        /// <param name="jointTracked">JointType to map effect to</param>
+        /// <param name="pairedToJoint">Effect follows jointTracked</param>
+        /// <param name="effect">Effect created from gesture execution</param>
+        /// <param name="fudgeFactor">Percentage of allowed slack</param>
+        /// <param name="timeout">Time for triggering next gesture</param>
         public SubGesture(Dictionary<LigDir, Vector3> position, JointType jointTracked, bool pairedToJoint, GameObject effect, float fudgeFactor, float timeout)
         {
             this.position = position;
@@ -77,6 +86,16 @@ public class Gesture {
             this.timeout = timeout;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="position">Position of gesture</param>
+        /// <param name="jointTracked">JointType to map effect to</param>
+        /// <param name="directionOrigin">JointType of angle origin to jointTracked position</param>
+        /// <param name="pairedToJoint">Effect follows jointTracked</param>
+        /// <param name="effect">Effect created from gesture execution</param>
+        /// <param name="fudgeFactor">Percentage of allowed slack</param>
+        /// <param name="timeout">Time for triggering next gesture</param>
         public SubGesture(Dictionary<LigDir, Vector3> position, JointType jointTracked, JointType directionOrigin, bool pairedToJoint, GameObject effect, float fudgeFactor, float timeout)
         {
             this.position = position;
