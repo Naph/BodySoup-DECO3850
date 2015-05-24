@@ -12,6 +12,7 @@ public class ActiveEffect {
     private bool paired;
     private float lifetime;
 
+
     public ActiveEffect(GameObject effect, String joint, Vector3 initialPos, String origin, bool paired, float timeout)
     {
         this.effect = (GameObject)MonoBehaviour.Instantiate(effect, initialPos, Quaternion.identity);
@@ -21,6 +22,7 @@ public class ActiveEffect {
         MonoBehaviour.Destroy(this.effect, timeout);
     }
 
+
     public void UpdateEffect(GameObject body)
     {
         lifetime = +0.01f;
@@ -29,7 +31,13 @@ public class ActiveEffect {
         {
             effect.transform.position = body.transform.FindChild(joint).position;
         }
+
+        if (!origin.Equals("Unset"))
+        {
+            EffectRotation(body);
+        }
     }
+
 
     public void EffectRotation(GameObject body)
     {
@@ -57,6 +65,7 @@ public class ActiveEffect {
         effect.transform.localPosition = effectPos;
         effect.transform.rotation = Quaternion.Euler(rotation);
     }
+
 
     public void Destroy() {
         MonoBehaviour.Destroy(this.effect);

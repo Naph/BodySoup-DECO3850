@@ -16,7 +16,8 @@ public class PlayerBody {
     //private bool pairedToJoint;
 
     private Gesture currentGesture;
-    private int currentSubGesture;
+    private int IcurrentSubGesture;
+    private Gesture.SubGesture currentSubGesture;
     public bool inGesture = false;
     public bool isAmbidextrous = false;
 
@@ -46,6 +47,7 @@ public class PlayerBody {
     private Vector3 LeftHand;
 
     private Dictionary<LigDir, Vector3> jointPositions;
+
 
     public PlayerBody(ulong id, Material green, Material red)
     {
@@ -88,6 +90,7 @@ public class PlayerBody {
         }
     }
 
+
     private void RefreshJoints(Body body)
     {
         // Refresh visual representation of Kinect body
@@ -109,7 +112,7 @@ public class PlayerBody {
 
                     if (currentGesture != null)
                     {
-                        if (ComparePosition(currentGesture.subGestures[currentSubGesture]))
+                        if (ComparePosition(currentGesture.current))
                         {
                             rnd.material = greenMaterial;
                         }
@@ -117,9 +120,6 @@ public class PlayerBody {
                         {
                             rnd.material = redMaterial;
                         }
-                    }
-                    else
-                    {
                     }
 
                     LineRenderer lr = jointObj.GetComponent<LineRenderer>();
@@ -166,6 +166,7 @@ public class PlayerBody {
         UpdateEffectPositions();
     }
 
+
     private void InstantiateDict()
     {
         jointPositions = new Dictionary<LigDir, Vector3>()
@@ -179,6 +180,7 @@ public class PlayerBody {
         };
     }
 
+
     /// <summary>
     /// Start a new Gesture
     /// Called from BodySourceView when a body enters the first position
@@ -189,39 +191,38 @@ public class PlayerBody {
     {
         if (currentGesture != null)
         {
-            if (currentGesture != gesture && currentSubGesture == 0)
+            if (currentGesture != gesture && currentGesture.curStep == 0)
             {
-                ExecuteGesture(gesture, 0);
+                ExecuteGesture(gesture);
             }
             else
             {
-                if (gesture.repeatable && currentSubGesture != 0)
+                if (gesture.repeatable && currentGesture.curStep != 0)
                 {
-                    ExecuteGesture(gesture, 0);
+                    ExecuteGesture(gesture);
                 }
             }
         }
         
         if (currentGesture == null)
         {
-            ExecuteGesture(gesture, 0);
+            ExecuteGesture(gesture);
         }
     }
 
 
-    private void ExecuteGesture(Gesture gesture, int index)
+    private void ExecuteGesture(Gesture gesture)
     {
         currentGesture = gesture;
-        currentSubGesture = index;
 
-        var subGesture = gesture.subGestures[index];
+        // gesture.current NEEDS TO BE CHECKED FOR NULL VALUES
         var effect = new ActiveEffect(
-                subGesture.effect,
-                subGesture.jointTracked,
-                this.bodyObject.transform.FindChild(subGesture.jointTracked).position,
-                subGesture.directionOrigin,
-                subGesture.pairedToJoint,
-                subGesture.timeout);
+                gesture.current.effect,
+                gesture.current.jointTracked,
+                this.bodyObject.transform.FindChild(gesture.current.jointTracked).position,
+                gesture.current.directionOrigin,
+                gesture.current.pairedToJoint,
+                gesture.current.timeout);
 
         if (activeEffects.ContainsKey(currentGesture))
         {
@@ -235,11 +236,6 @@ public class PlayerBody {
         }
         
         effect.UpdateEffect(this.bodyObject);
-        
-        if (!subGesture.directionOrigin.Equals("Unset"))
-        {
-            effect.EffectRotation(this.bodyObject);
-        }
     }
 
 
@@ -247,24 +243,27 @@ public class PlayerBody {
     {
         if (currentGesture != null)
         {
-            if (currentSubGesture + 1 < currentGesture.count) // if not last
+            if (currentGesture.curStep + 1 < currentGesture.count)
             {
-                if (ComparePosition(currentGesture.subGestures[currentSubGesture + 1]))
+                if (currentGesture.next.isFinisher == true)
                 {
-                    currentSubGesture++;
-                    ExecuteGesture(currentGesture, currentSubGesture);
+                    if (ComparePosition(currentGesture.getFinishers))
+                    {
+                        ExecuteGesture(currentGesture);
+                    }
                 }
-                /*
-                if (ComparePosition(currentGesture.subGestures[currentSubGesture]))
+                else
                 {
-                    // Holding SubGesture position
-                    chargeTimer += chargeMagnitude;
+                    if (ComparePosition(currentGesture.next))
+                    {
+                        currentGesture.Step();
+                        ExecuteGesture(currentGesture);
+                    }
                 }
-                */
             }
-            else // if last
+            else
             {
-                if (!ComparePosition(currentGesture.subGestures[currentSubGesture])) // if left last
+                if (!ComparePosition(currentGesture.current))
                 {
                     currentGesture = null;
                 }
@@ -299,37 +298,39 @@ public class PlayerBody {
         
         foreach (KeyValuePair<LigDir, Vector3> pair in this.jointPositions)
         {
-
-            if (isAmbidextrous)
+            if (dist(pair.Value, gesture.position[pair.Key]) > gesture.fudgeFactor)
             {
-
-                if (currentGesture.subGestures.Contains(gesture) &&
-                gesture == currentGesture.subGestures[currentGesture.subGestures.Count - 2])
-                {
-                    if (dist(pair.Value, currentGesture.subGestures[currentSubGesture].position[pair.Key]) < gesture.fudgeFactor
-                        // || dist(pair.Value, gesture.position[pair.Key]) < gesture.fudgeFactor
-                        )
-                    {
-                        Debug.Log("Finished");
-
-                        isAmbidextrous = false;
-                        return true;
-                    }
-                }
-            }
-            else
-            {
-                if (dist(pair.Value, gesture.position[pair.Key]) > gesture.fudgeFactor)
-                {
-                    inGesture = false;
-                    return false;
-                }
+                inGesture = false;
+                return false;
             }
         }
 
         return true;
     }
 
+
+    public bool ComparePosition(List<Gesture.SubGesture> gestures)
+    {
+        for (int i = 0; i < gestures.Count; i++)
+        {
+            if (ComparePosition(gestures[i]))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /* Maybe later.
+    private void UpdateCurrentSubGesture()
+    {
+        if (currentGesture != null)
+        {
+            this.currentSubGesture = ComparePosition(currentGesture.subGestures);
+        }
+    }
+    */
 
     public void DestroyBody()
     {
@@ -352,10 +353,11 @@ public class PlayerBody {
         if (currentGesture == gesture)
         {
             currentGesture = null;
-            currentSubGesture = 0;
+            IcurrentSubGesture = 0;
             isAmbidextrous = false;
         }
     }
+
 
      private static Vector3 GetJointVector3(KinectJoint joint)
     {

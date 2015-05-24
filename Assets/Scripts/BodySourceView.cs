@@ -25,90 +25,65 @@ public class BodySourceView : MonoBehaviour
         _Bodies = new Dictionary<ulong, PlayerBody>();
         _Gestures = new List<Gesture>();
         
+
         // WHITEBEARD CRACK
         Gesture.SubGesture crackFirst =
-            new Gesture.SubGesture(Position.RightArmCrossOverHeart, JointType.HandRight, true, Effect.Instance.Shirohige, 0.30f, 1.5f);
+            new Gesture.SubGesture(Position.RightArmCrossOverHeart, JointType.HandRight, true, Effect.Instance.Shirohige, false, 0.30f, 1.5f);
         Gesture.SubGesture crackSecond =
-            new Gesture.SubGesture(Position.RightArmOutwardMid, JointType.HandRight, false, Effect.Instance.CrackParent, 0.45f, 2.5f);
+            new Gesture.SubGesture(Position.RightArmOutwardMid, JointType.HandRight, false, Effect.Instance.CrackParent, true, 0.45f, 2.5f);
 
         List<Gesture.SubGesture> crackGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
            crackFirst, crackSecond});
         Gesture crack = new Gesture(crackGesture, true);
         _Gestures.Add(crack);
 
+
         // FIRE SHIELD
         Gesture.SubGesture fireshieldFirst =
-            new Gesture.SubGesture(Position.HandsOnHead, JointType.SpineMid, true, Effect.Instance.FireShield, 0.60f, 4f);
+            new Gesture.SubGesture(Position.HandsOnHead, JointType.SpineMid, true, Effect.Instance.FireShield, false, 0.60f, 4f);
         Gesture.SubGesture watershieldFirst =
-            new Gesture.SubGesture(Position.TPose, JointType.SpineMid, true, Effect.Instance.WaterShield, 0.35f, 4f);
+            new Gesture.SubGesture(Position.TPose, JointType.SpineMid, true, Effect.Instance.WaterShield, true, 0.35f, 4f);
 
         List<Gesture.SubGesture> fireshieldGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
             fireshieldFirst, watershieldFirst });
         Gesture fireshield = new Gesture(fireshieldGesture, false);
         _Gestures.Add(fireshield);
 
-        
-        Gesture.SubGesture kamehamehaFirstLR =
-            new Gesture.SubGesture(Position.ChargingKamehamehaLR, JointType.HandLeft, true, Effect.Instance.Kame, 0.60f, 3f);
-        
-        Gesture.SubGesture kamehamehaFirstRL =
-            new Gesture.SubGesture(Position.ChargingKamehamehaRL, JointType.HandLeft, true, Effect.Instance.Kame, 0.60f, 3f);
-        
+
+        // KAMEHAMEHA
         Gesture.SubGesture kamehamehaFirst =
-            new Gesture.SubGesture(Position.ChargingKamehamehaMid, JointType.HandLeft, true, Effect.Instance.Kame, 0.60f, 3f);
+            new Gesture.SubGesture(Position.ChargingKamehamehaMid, JointType.HandLeft, true, Effect.Instance.Kame, false, 0.60f, 3f);
         
         Gesture.SubGesture kamehamehaSecondRight =
-            new Gesture.SubGesture(Position.KamehamehaRight, JointType.HandLeft, JointType.SpineMid, false, Effect.Instance.Kamehameha, 0.50f, 3f);
+            new Gesture.SubGesture(Position.KamehamehaRight, JointType.HandRight, JointType.SpineMid, true, Effect.Instance.Kamehameha, true, 0.50f, 3f);
         
         Gesture.SubGesture kamehamehaSecondLeft =
-            new Gesture.SubGesture(Position.KamehamehaLeft, JointType.HandLeft, JointType.SpineMid, false, Effect.Instance.Kamehameha, 0.50f, 3f);
-        /*
-        List<Gesture.SubGesture> kamehamehaLeftGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
-            kamehamehaFirstRL, kamehamehaSecondLeft });
-        Gesture kamehamehaLeft = new Gesture(kamehamehaLeftGesture, true);
-        _Gestures.Add(kamehamehaLeft);
-
-        List<Gesture.SubGesture> kamehamehaRightGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
-            kamehamehaFirstLR, kamehamehaSecondRight });
-        Gesture kamehamehaRight = new Gesture(kamehamehaRightGesture, true);
-        _Gestures.Add(kamehamehaRight);
-        */
-
-        // Kamehameha
+            new Gesture.SubGesture(Position.KamehamehaLeft, JointType.HandLeft, JointType.SpineMid, true, Effect.Instance.Kamehameha, true, 0.50f, 3f);
+        
         List<Gesture.SubGesture> kamehamehaGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
             kamehamehaFirst, kamehamehaSecondRight, kamehamehaSecondLeft });
         Gesture kamehameha = new Gesture(kamehamehaGesture, true, true);
         _Gestures.Add(kamehameha);
 
-        // Wings
+
+        // CHARIZARD WINGS
         Gesture.SubGesture Wings =
-            new Gesture.SubGesture(Position.TPose, JointType.Neck, true, Effect.Instance.Wings, 0.35f, 5f);
+            new Gesture.SubGesture(Position.TPose, JointType.Neck, true, Effect.Instance.Wings, true, 0.35f, 5f);
 
         List<Gesture.SubGesture> wingGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
            Wings, kamehamehaSecondLeft});
         Gesture wings = new Gesture(wingGesture, true);
         _Gestures.Add(wings);
 
-        // Lightning
+
+        // LIGHTNING STORM
         Gesture.SubGesture Lightning =
-            new Gesture.SubGesture(Position.YPose, JointType.Neck, false, Effect.Instance.Lightning, 0.60f, 5f);
+            new Gesture.SubGesture(Position.YPose, JointType.Neck, false, Effect.Instance.Lightning, true, 0.60f, 5f);
 
         List<Gesture.SubGesture> lightningGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
             Lightning, kamehamehaSecondLeft });
         Gesture lightning = new Gesture(lightningGesture, false);
         _Gestures.Add(lightning);
-
-        // IRONMAN PUSLE BOLT - conflicts with KAMEHAMEHA
-        /*Gesture.SubGesture ironmanLeft1 =
-            new Gesture.SubGesture(Position.IronmanLeftRF, JointType.HandRight, JointType.SpineMid, false, Effect.Instance.IronMan, 0.20f, 4f);
-        // RIGHT
-        Gesture.SubGesture ironmanLeft2 =
-            new Gesture.SubGesture(Position.IronmanLeftLF, JointType.HandLeft, JointType.SpineMid, false, Effect.Instance.IronMan, 0.20f, 4f);
-        
-        List<Gesture.SubGesture> ironmanGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
-            ironmanLeft1, ironmanLeft2});
-        Gesture ironMan = new Gesture(ironmanGesture, false, true);
-        _Gestures.Add(ironMan);*/
     }
 
 
