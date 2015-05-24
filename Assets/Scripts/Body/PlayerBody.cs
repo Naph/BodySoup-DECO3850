@@ -300,22 +300,30 @@ public class PlayerBody {
         foreach (KeyValuePair<LigDir, Vector3> pair in this.jointPositions)
         {
 
-            if (isAmbidextrous && 
-                currentGesture.subGestures.Contains(gesture) &&
-                gesture == currentGesture.subGestures[currentGesture.subGestures.Count - 2])
+            if (isAmbidextrous)
             {
-                if (dist(pair.Value, currentGesture.subGestures[currentSubGesture + 1].position[pair.Key]) < gesture.fudgeFactor ||
-                    dist(pair.Value, gesture.position[pair.Key]) < gesture.fudgeFactor)
+
+                if (currentGesture.subGestures.Contains(gesture) &&
+                gesture == currentGesture.subGestures[currentGesture.subGestures.Count - 2])
                 {
-                    isAmbidextrous = false;
-                    return true;
+                    if (dist(pair.Value, currentGesture.subGestures[currentSubGesture].position[pair.Key]) < gesture.fudgeFactor
+                        // || dist(pair.Value, gesture.position[pair.Key]) < gesture.fudgeFactor
+                        )
+                    {
+                        Debug.Log("Finished");
+
+                        isAmbidextrous = false;
+                        return true;
+                    }
                 }
             }
-
-            if (dist(pair.Value, gesture.position[pair.Key]) > gesture.fudgeFactor)
+            else
             {
-                inGesture = false;
-                return false;
+                if (dist(pair.Value, gesture.position[pair.Key]) > gesture.fudgeFactor)
+                {
+                    inGesture = false;
+                    return false;
+                }
             }
         }
 
@@ -345,6 +353,7 @@ public class PlayerBody {
         {
             currentGesture = null;
             currentSubGesture = 0;
+            isAmbidextrous = false;
         }
     }
 
