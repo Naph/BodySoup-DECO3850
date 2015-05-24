@@ -97,7 +97,7 @@ public class Position {
 		{ LigDir.RightHand, new Vector3(-0.8409937f, -0.541045f, 0f) }
     };
 
-    public static Dictionary<LigDir, Vector3> KamehamehaRight =
+    public static Dictionary<LigDir, Vector3> KamehamehaLeft =
         new Dictionary<LigDir, Vector3>()
     {  
 	    { LigDir.LeftUpperArm,  new Vector3(0.9879123f, -0.155014f, 0f) },
@@ -109,7 +109,7 @@ public class Position {
 		//{ LigDir.RightHand,     new Vector3(0.7370645f, -0.6758224f, 0f) }
     };
 
-    public static Dictionary<LigDir, Vector3> KamehamehaLeft =
+    public static Dictionary<LigDir, Vector3> KamehamehaRight =
         new Dictionary<LigDir, Vector3>()
     {  
         { LigDir.LeftUpperArm,  Vector3.zero },

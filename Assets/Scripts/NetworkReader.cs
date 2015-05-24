@@ -79,7 +79,7 @@ public class NetworkReader : MonoBehaviour {
         TcpListener listener = (TcpListener)iar.AsyncState;
         TcpClient client = listener.EndAcceptTcpClient(iar);
 
-        Debug.Log("Stream Connected");
+        //Debug.Log("Stream Connected");
 
         ns = client.GetStream();
         connected = true;
@@ -109,7 +109,9 @@ public class NetworkReader : MonoBehaviour {
                     this.validNames = null;
                     this.validNumBodies = 0;
 
-                    Debug.Log("No Bodies Seen");
+                    ns.WriteByte(1);
+
+                    //Debug.Log("No Bodies Seen");
                     reading = false;
                 }
                 else
@@ -119,13 +121,13 @@ public class NetworkReader : MonoBehaviour {
                     this.floats = new List<float[]>();
 
                     byte[] numCharsData = new byte[this.numBodies * sizeof(int)];
-                    Debug.Log(numCharsData.Length + "sizeof numCharsData");
+                    //Debug.Log(numCharsData.Length + "sizeof numCharsData");
                     ns.Read(numCharsData, 0, numCharsData.Length);
 
                     int[] numChars = new int[this.numBodies];
-                    Debug.Log(numCharsData);
+                    //Debug.Log(numCharsData);
                     Buffer.BlockCopy(numCharsData, 0, numChars, 0, numCharsData.Length);
-                    Debug.Log("nameChars[0]: " + numChars[0]);
+                    //Debug.Log("nameChars[0]: " + numChars[0]);
                     this.nameLengths = numChars;
 
                     this.nameBuffer = new byte[this.nameLengths[0]];
@@ -173,11 +175,11 @@ public class NetworkReader : MonoBehaviour {
         if (numRead + this.nameBufferOffset == this.nameBuffer.Length)
         {
             this.names.Add(GetString(nameBuffer));
-            Debug.Log("Name: " + this.names[this.names.Count - 1]);
+            //Debug.Log("Name: " + this.names[this.names.Count - 1]);
 
             if (this.names.Count == this.numBodies)
             {
-                Debug.Log("Starting float read");
+                //Debug.Log("Starting float read");
 
                 this.floatBuffer = new byte[75 * sizeof(float)];
                 this.floatBufferOffset = 0;
@@ -201,10 +203,10 @@ public class NetworkReader : MonoBehaviour {
     {
         int floatPos = (int)iar.AsyncState;
         int numRead = ns.EndRead(iar);
-        Debug.Log("EndFloatRead: " + numRead);
+        //Debug.Log("EndFloatRead: " + numRead);
         if (numRead + this.floatBufferOffset == this.floatBuffer.Length)
         {
-            Debug.Log("Yes");
+            //Debug.Log("Yes");
             float[] floatNums = new float[75];
             Buffer.BlockCopy(this.floatBuffer, 0, floatNums, 0, this.floatBuffer.Length);
 
@@ -212,13 +214,13 @@ public class NetworkReader : MonoBehaviour {
 
             if (this.floats.Count == this.numBodies)
             {
-                Debug.Log(this.floats[0][0] + " " + this.floats[0][1] + " " + this.floats[0][2]);
+                //Debug.Log(this.floats[0][0] + " " + this.floats[0][1] + " " + this.floats[0][2]);
 
                 this.validNumBodies = this.numBodies;
                 this.validNames = this.names;
                 this.validFloats = this.floats;
                 this.readOnce = true;
-
+                ns.WriteByte(1);
                 reading = false;
                 return;
             }
@@ -231,7 +233,7 @@ public class NetworkReader : MonoBehaviour {
         }
         else
         {
-            Debug.Log("No");
+            //Debug.Log("No");
             this.floatBufferOffset += numRead;
             ns.BeginRead(this.floatBuffer, this.floatBufferOffset, this.floatBuffer.Length - this.floatBufferOffset, new AsyncCallback(DoEndReadFloats), floatPos);
         }
@@ -239,7 +241,7 @@ public class NetworkReader : MonoBehaviour {
 
     static string GetString(byte[] bytes)
     {
-        Debug.Log(bytes.Length + ": " + (bytes.Length / sizeof(char)));
+        //Debug.Log(bytes.Length + ": " + (bytes.Length / sizeof(char)));
         char[] chars = new char[bytes.Length / sizeof(char)];
         System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
         return new string(chars);

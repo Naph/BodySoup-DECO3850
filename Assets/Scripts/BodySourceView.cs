@@ -21,6 +21,7 @@ public class BodySourceView : MonoBehaviour
 
     public Material redMaterial;
     public Material greenMaterial;
+    public Material whiteMaterial;
 
     public NetworkReader nr;
 
@@ -60,10 +61,10 @@ public class BodySourceView : MonoBehaviour
             new Gesture.SubGesture(Position.ChargingKamehamehaMid, JointType.HandLeft, true, Effect.Instance.Kame, false, 0.60f, 3f);
         
         Gesture.SubGesture kamehamehaSecondRight =
-            new Gesture.SubGesture(Position.KamehamehaRight, JointType.HandRight, JointType.SpineMid, true, Effect.Instance.Kamehameha, true, 0.50f, 3f);
+            new Gesture.SubGesture(Position.KamehamehaRight, JointType.HandLeft, JointType.SpineMid, true, Effect.Instance.Kamehameha, true, 0.50f, 3f);
         
         Gesture.SubGesture kamehamehaSecondLeft =
-            new Gesture.SubGesture(Position.KamehamehaLeft, JointType.HandLeft, JointType.SpineMid, true, Effect.Instance.Kamehameha, true, 0.50f, 3f);
+            new Gesture.SubGesture(Position.KamehamehaLeft, JointType.HandRight, JointType.SpineMid, true, Effect.Instance.Kamehameha, true, 0.50f, 3f);
         
         List<Gesture.SubGesture> kamehamehaGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
             kamehamehaFirst, kamehamehaSecondRight, kamehamehaSecondLeft });
@@ -239,12 +240,12 @@ public class BodySourceView : MonoBehaviour
      */
     private PlayerBody CreateBodyObject(ulong id)
     {
-        return new PlayerBody(id, greenMaterial, redMaterial);
+        return new PlayerBody(id, greenMaterial, redMaterial, whiteMaterial);
     }
 
     private PlayerBody CreateBodyObject(string name)
     {
-        return new PlayerBody(name, greenMaterial, redMaterial);
+        return new PlayerBody(name, greenMaterial, redMaterial, whiteMaterial);
     }
 
 

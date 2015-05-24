@@ -8,6 +8,7 @@ public class PlayerBody {
 
     public Material redMaterial;
     public Material greenMaterial;
+    public Material whiteMaterial;
     
     public GameObject bodyObject;
     private Dictionary<Gesture, ActiveEffect> activeEffects;
@@ -49,7 +50,7 @@ public class PlayerBody {
     private Dictionary<LigDir, Vector3> jointPositions;
 
 
-    public PlayerBody(ulong id, Material green, Material red)
+    public PlayerBody(ulong id, Material green, Material red, Material white)
     {
         this.bodyObject = new GameObject("Body: " + id);
         this.renderedJoints = new List<GameObject>();
@@ -58,11 +59,12 @@ public class PlayerBody {
 
         redMaterial = red;
         greenMaterial = green;
+        whiteMaterial = white;
 
         AddJoints();
     }
 
-    public PlayerBody(string name, Material green, Material red)
+    public PlayerBody(string name, Material green, Material red, Material white)
     {
         this.bodyObject = new GameObject("Body: " + name);
         this.renderedJoints = new List<GameObject>();
@@ -71,6 +73,7 @@ public class PlayerBody {
 
         redMaterial = red;
         greenMaterial = green;
+        whiteMaterial = white;
 
         AddJoints();
     }
@@ -96,7 +99,7 @@ public class PlayerBody {
             LineRenderer lr = jointRender.AddComponent<LineRenderer>();
             lr.enabled = false;
             lr.SetWidth(0.05f, 0.05f);
-
+            lr.material = whiteMaterial;
             jointRender.transform.parent = bodyObject.transform;
 
             renderedJoints.Add(jointRender);
@@ -114,20 +117,21 @@ public class PlayerBody {
 
             jointObj.localPosition = GetJointVector3(floats[current], floats[current + 1], floats[current + 2]);
             current = current + 3;
+            jointObj.gameObject.SetActive(false);
         }
 
         for (JointType jt = JointType.SpineBase; jt <= JointType.ThumbRight; jt++)
         {
             Transform sourceTranform = this.bodyObject.transform.FindChild(jt.ToString());
-
+            //sourceTranform.gameObject.SetActive(true);
             if (renderBoneMap.ContainsKey(jt))
             {
                 List<JointType> targetJoints = renderBoneMap[jt];
-
+                sourceTranform.gameObject.SetActive(true);
                 foreach (JointType target in targetJoints)
                 {
                     Transform targetTransform = this.bodyObject.transform.FindChild(target.ToString());
-
+                    targetTransform.gameObject.SetActive(true);
                     Renderer rnd = sourceTranform.GetComponent<Renderer>();
                     rnd.material = redMaterial;
 
@@ -149,6 +153,7 @@ public class PlayerBody {
                     LineRenderer lr = sourceTranform.GetComponent<LineRenderer>();
                     lr.SetPosition(0, sourceTranform.localPosition);
                     lr.SetPosition(1, targetTransform.localPosition);
+                    
                     lr.SetColors(Color.cyan, Color.cyan);
                     lr.enabled = true;
                 }
@@ -191,12 +196,14 @@ public class PlayerBody {
                     LineRenderer lr = jointObj.GetComponent<LineRenderer>();
                     lr.SetPosition(0, jointObj.localPosition);
                     lr.SetPosition(1, GetJointVector3(body.Joints[target]));
-                    lr.SetColors(Color.magenta, Color.magenta);
+                    
+                    lr.SetColors(Color.green, Color.green);
                     lr.enabled = true;
                 }
             }
         }
     }
+
 
     public void RefreshBody(float[] floats)
     {
@@ -342,29 +349,24 @@ public class PlayerBody {
     {
         if (currentGesture != null)
         {
-            if (currentGesture.curStep + 1 < currentGesture.count)
+            if (currentGesture.next.isFinisher)
             {
-                if (currentGesture.next.isFinisher == true)
+                if (ComparePosition(currentGesture.getFinishers))
                 {
-                    if (ComparePosition(currentGesture.getFinishers))
-                    {
-                        ExecuteGesture(currentGesture);
-                    }
+                    currentGesture.Step();
+                    ExecuteGesture(currentGesture);
                 }
                 else
                 {
-                    if (ComparePosition(currentGesture.next))
-                    {
-                        currentGesture.Step();
-                        ExecuteGesture(currentGesture);
-                    }
+                    currentGesture = null;
                 }
             }
             else
             {
-                if (!ComparePosition(currentGesture.current))
+                if (ComparePosition(currentGesture.next))
                 {
-                    currentGesture = null;
+                    currentGesture.Step();
+                    ExecuteGesture(currentGesture);
                 }
             }
         }
@@ -421,15 +423,20 @@ public class PlayerBody {
         return false;
     }
 
-    /* Maybe later.
-    private void UpdateCurrentSubGesture()
+
+    public Gesture.SubGesture CompareAndGetPosition(List<Gesture.SubGesture> gestures)
     {
-        if (currentGesture != null)
+        for (int i = 0; i < gestures.Count; i++)
         {
-            this.currentSubGesture = ComparePosition(currentGesture.subGestures);
+            if (ComparePosition(gestures[i]))
+            {
+                return gestures[i];
+            }
         }
+
+        return null;
     }
-    */
+
 
     public void DestroyBody()
     {
