@@ -38,8 +38,8 @@ public class BodySourceView : MonoBehaviour
         Gesture.SubGesture crackSecond =
             new Gesture.SubGesture(Position.RightArmOutwardMid, JointType.HandRight, false, Effect.Instance.CrackParent, true, 0.45f, 2.5f);
 
-        List<Gesture.SubGesture> crackGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
-           crackFirst, crackSecond});
+        Gesture.SubGesture[] crackGesture = new Gesture.SubGesture[] {
+           crackFirst, crackSecond};
         Gesture crack = new Gesture(crackGesture, true);
         _Gestures.Add(crack);
 
@@ -50,8 +50,8 @@ public class BodySourceView : MonoBehaviour
         Gesture.SubGesture watershieldFirst =
             new Gesture.SubGesture(Position.TPose, JointType.SpineMid, true, Effect.Instance.WaterShield, true, 0.35f, 4f);
 
-        List<Gesture.SubGesture> fireshieldGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
-            fireshieldFirst, watershieldFirst });
+        Gesture.SubGesture[] fireshieldGesture = new Gesture.SubGesture[] {
+            fireshieldFirst, watershieldFirst };
         Gesture fireshield = new Gesture(fireshieldGesture, false);
         _Gestures.Add(fireshield);
 
@@ -61,14 +61,14 @@ public class BodySourceView : MonoBehaviour
             new Gesture.SubGesture(Position.ChargingKamehamehaMid, JointType.HandLeft, true, Effect.Instance.Kame, false, 0.60f, 3f);
         
         Gesture.SubGesture kamehamehaSecondRight =
-            new Gesture.SubGesture(Position.KamehamehaRight, JointType.HandLeft, JointType.SpineMid, true, Effect.Instance.Kamehameha, true, 0.50f, 3f);
+            new Gesture.SubGesture(Position.KamehamehaLeft, JointType.HandLeft, JointType.SpineMid, false, Effect.Instance.Kamehameha, true, 0.50f, 3f);
         
         Gesture.SubGesture kamehamehaSecondLeft =
-            new Gesture.SubGesture(Position.KamehamehaLeft, JointType.HandRight, JointType.SpineMid, true, Effect.Instance.Kamehameha, true, 0.50f, 3f);
+            new Gesture.SubGesture(Position.KamehamehaRight, JointType.HandRight, JointType.SpineMid, false, Effect.Instance.Kamehameha, true, 0.50f, 3f);
         
-        List<Gesture.SubGesture> kamehamehaGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
-            kamehamehaFirst, kamehamehaSecondRight, kamehamehaSecondLeft });
-        Gesture kamehameha = new Gesture(kamehamehaGesture, true, true);
+        Gesture.SubGesture[] kamehamehaGesture = new Gesture.SubGesture[] {
+            kamehamehaFirst, kamehamehaSecondLeft, kamehamehaSecondRight };
+        Gesture kamehameha = new Gesture(kamehamehaGesture, true);
         _Gestures.Add(kamehameha);
 
 
@@ -76,8 +76,8 @@ public class BodySourceView : MonoBehaviour
         Gesture.SubGesture Wings =
             new Gesture.SubGesture(Position.TPose, JointType.Neck, true, Effect.Instance.Wings, true, 0.35f, 5f);
 
-        List<Gesture.SubGesture> wingGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
-           Wings, kamehamehaSecondLeft});
+        Gesture.SubGesture[] wingGesture = new Gesture.SubGesture[] {
+           Wings, kamehamehaSecondLeft};
         Gesture wings = new Gesture(wingGesture, true);
         _Gestures.Add(wings);
 
@@ -86,8 +86,8 @@ public class BodySourceView : MonoBehaviour
         Gesture.SubGesture Lightning =
             new Gesture.SubGesture(Position.YPose, JointType.Neck, false, Effect.Instance.Lightning, true, 0.60f, 5f);
 
-        List<Gesture.SubGesture> lightningGesture = new List<Gesture.SubGesture>(new Gesture.SubGesture[] {
-            Lightning, kamehamehaSecondLeft });
+        Gesture.SubGesture[] lightningGesture = new Gesture.SubGesture[] {
+            Lightning, kamehamehaSecondLeft };
         Gesture lightning = new Gesture(lightningGesture, false);
         _Gestures.Add(lightning);
     }
@@ -272,8 +272,6 @@ public class BodySourceView : MonoBehaviour
         {
             if (player.ComparePosition(_Gestures[i].first))
             {
-                player.inGesture = true;
-                player.isAmbidextrous = _Gestures[i].ambidexterity;
                 player.StartGesture(_Gestures[i]);
                 break;
             }

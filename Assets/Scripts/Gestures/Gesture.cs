@@ -6,53 +6,30 @@ using Windows.Kinect;
 
 public class Gesture {
 
-    public List<SubGesture> subGestures;
+    public SubGesture[] subGestures;
     public bool repeatable;
-    public bool ambidexterity;
-    public int curStep;
 
 
-    public Gesture(List<SubGesture> subGestures, bool repeatable, bool ambidexterity = false)
+    public Gesture(SubGesture[] subGestures, bool repeatable)
     {
         this.subGestures = subGestures;
         this.repeatable = repeatable;
-        this.ambidexterity = ambidexterity;
-        curStep = 0;
     }
 
     public int count
     {
-        get { return this.subGestures.Count; }
+        get { return this.subGestures.Length; }
     }
-    
-    public SubGesture current
-    {
-        get
-        {
-            SubGesture result;
-            try
-            {
-                result = this.subGestures[curStep];
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                result = null;
-            }
 
-            return result;
-        }
+    public int IndexOf(SubGesture index)
+    {
+        return Array.IndexOf(subGestures, index);
     }
 
 
     public SubGesture first
     {
         get { return this.subGestures[0]; }
-    }
-
-
-    public SubGesture next
-    {
-        get { return this.subGestures[curStep + 1]; }
     }
 
     public List<SubGesture> getFinishers
@@ -71,17 +48,31 @@ public class Gesture {
     }
 
 
-    public void Step()
+    public bool ContainsEffect(GameObject effect)
     {
-        curStep++;
+        bool result = false;
+
+        foreach (SubGesture subGesture in this.subGestures)
+        {
+            foreach (GameObject _effect in subGesture.effect)
+            {
+                if (_effect == effect)
+                {
+                    result = true;
+                }
+            }
+        }
+
+        return result;
     }
+
 
     public class SubGesture
     {
         public Dictionary<LigDir, Vector3> position;
         public String jointTracked;
         public String directionOrigin;
-        public GameObject effect;
+        public GameObject[] effect;
         public bool pairedToJoint;
         public bool isFinisher;
         public float fudgeFactor;
@@ -97,7 +88,7 @@ public class Gesture {
         /// <param name="isfinisher">Subgesture finishes a Gesture</param>
         /// <param name="fudgeFactor">Percentage of allowed slack</param>
         /// <param name="timeout">Time for triggering next gesture</param>
-        public SubGesture(Dictionary<LigDir, Vector3> position, JointType jointTracked, bool pairedToJoint, GameObject effect, bool isFinisher, float fudgeFactor, float timeout)
+        public SubGesture(Dictionary<LigDir, Vector3> position, JointType jointTracked, bool pairedToJoint, GameObject[] effect, bool isFinisher, float fudgeFactor, float timeout)
         {
             this.position = position;
             this.jointTracked = jointTracked.ToString();
@@ -120,7 +111,7 @@ public class Gesture {
         /// <param name="isfinisher">Subgesture finishes a Gesture</param>
         /// <param name="fudgeFactor">Percentage of allowed slack</param>
         /// <param name="timeout">Time for triggering next gesture</param>
-        public SubGesture(Dictionary<LigDir, Vector3> position, JointType jointTracked, JointType directionOrigin, bool pairedToJoint, GameObject effect, bool isFinisher, float fudgeFactor, float timeout)
+        public SubGesture(Dictionary<LigDir, Vector3> position, JointType jointTracked, JointType directionOrigin, bool pairedToJoint, GameObject[] effect, bool isFinisher, float fudgeFactor, float timeout)
         {
             this.position = position;
             this.jointTracked = jointTracked.ToString();

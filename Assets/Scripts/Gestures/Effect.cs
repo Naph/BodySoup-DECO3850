@@ -14,13 +14,13 @@ public class Effect : MonoBehaviour {
         }
     }
 
-    public GameObject FireShield;
-    public GameObject WaterShield;
-    public GameObject CrackParent;
-    public GameObject Shirohige;
-    public GameObject Kame;
-    public GameObject Kamehameha;
-    public GameObject IronMan;
-    public GameObject Wings;
-    public GameObject Lightning;
+    public GameObject[] FireShield;
+    public GameObject[] WaterShield;
+    public GameObject[] CrackParent;
+    public GameObject[] Shirohige;
+    public GameObject[] Kame;
+    public GameObject[] Kamehameha;
+    public GameObject[] IronMan;
+    public GameObject[] Wings;
+    public GameObject[] Lightning;
 }

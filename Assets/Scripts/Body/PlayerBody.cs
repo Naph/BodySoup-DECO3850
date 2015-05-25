@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Windows.Kinect;
 using KinectJoint = Windows.Kinect.Joint;
+using SubGesture = Gesture.SubGesture;
 
 public class PlayerBody {
 
@@ -12,22 +13,17 @@ public class PlayerBody {
     
     public GameObject bodyObject;
     private Dictionary<Gesture, ActiveEffect> activeEffects;
-    //private Transform activeJoint;
-    //private List<string> effectRotation;
-    //private bool pairedToJoint;
 
     private Gesture currentGesture;
-    private int IcurrentSubGesture;
-    private Gesture.SubGesture currentSubGesture;
-    public bool inGesture = false;
-    public bool isAmbidextrous = false;
-
-    //private float chargeTimer = 1f;
-    //private float chargeMagnitude = 0.05f;
+    private int IcurrentSubGesture = 0;
+    public Gesture.SubGesture theFinisher;
 
     private List<GameObject> renderedJoints;
     private List<string> nonRender = new List<string>(new string[] { 
-        "ElbowLeft", "ElbowRight", "WristLeft", "WristRight" });
+        "ElbowLeft", "ElbowRight", "WristLeft", "WristRight",
+        "KneeLeft", "KneeRight", "FootLeft", "FootRight", 
+        "AnkleLeft", "AnkleRight", 
+        "HandTipLeft", "HandTipRight", "ThumbLeft", "ThumbRight"});
 
     private Transform ShoulderLeft;
     private Transform ElbowLeft;
@@ -55,7 +51,6 @@ public class PlayerBody {
         this.bodyObject = new GameObject("Body: " + id);
         this.renderedJoints = new List<GameObject>();
         this.activeEffects = new Dictionary<Gesture, ActiveEffect>();
-        //this.effectRotation = new List<string>();
 
         redMaterial = red;
         greenMaterial = green;
@@ -69,7 +64,6 @@ public class PlayerBody {
         this.bodyObject = new GameObject("Body: " + name);
         this.renderedJoints = new List<GameObject>();
         this.activeEffects = new Dictionary<Gesture, ActiveEffect>();
-        //this.effectRotation = new List<string>();
 
         redMaterial = red;
         greenMaterial = green;
@@ -135,9 +129,9 @@ public class PlayerBody {
                     Renderer rnd = sourceTranform.GetComponent<Renderer>();
                     rnd.material = redMaterial;
 
-                    if (currentGesture != null)
+                    if (currentGesture != null && IcurrentSubGesture > 0)
                     {
-                        if (ComparePosition(currentGesture.current))
+                        if (ComparePosition(currentGesture.subGestures[IcurrentSubGesture - 1]))
                         {
                             rnd.material = greenMaterial;
                         }
@@ -145,9 +139,6 @@ public class PlayerBody {
                         {
                             rnd.material = redMaterial;
                         }
-                    }
-                    else
-                    {
                     }
 
                     LineRenderer lr = sourceTranform.GetComponent<LineRenderer>();
@@ -181,9 +172,9 @@ public class PlayerBody {
                     Renderer rnd = jointObj.gameObject.GetComponent<Renderer>();
                     rnd.material = redMaterial;
 
-                    if (currentGesture != null)
+                    if (currentGesture != null && IcurrentSubGesture != 0)
                     {
-                        if (ComparePosition(currentGesture.current))
+                        if (ComparePosition(currentGesture.subGestures[IcurrentSubGesture - 1]))
                         {
                             rnd.material = greenMaterial;
                         }
@@ -233,9 +224,11 @@ public class PlayerBody {
 
         RefreshJoints(floats);
 
-        UpdateGesture();
+        if (currentGesture != null && IcurrentSubGesture > 0) UpdateGesture();
 
-        UpdateEffectPositions();
+        UpdateEffect();
+
+        SweepActiveEffects();
     }
 
 
@@ -267,9 +260,11 @@ public class PlayerBody {
 
         RefreshJoints(body);
 
-        UpdateGesture();
+        if (currentGesture != null && IcurrentSubGesture > 0) UpdateGesture();
 
-        UpdateEffectPositions();
+        UpdateEffect();
+
+        SweepActiveEffects();
     }
 
 
@@ -297,111 +292,130 @@ public class PlayerBody {
     {
         if (currentGesture != null)
         {
-            if (currentGesture != gesture && currentGesture.curStep == 0)
+            if (currentGesture != gesture && IcurrentSubGesture == 0)
             {
-                ExecuteGesture(gesture);
-            }
-            else
-            {
-                if (gesture.repeatable && currentGesture.curStep != 0)
-                {
-                    ExecuteGesture(gesture);
-                }
+                ExecuteGesture(gesture, 0);
             }
         }
-        
-        if (currentGesture == null)
+        else
         {
-            ExecuteGesture(gesture);
+            ExecuteGesture(gesture, 0);
         }
     }
 
 
-    private void ExecuteGesture(Gesture gesture)
+    private void ExecuteGesture(Gesture gesture, int index)
     {
         currentGesture = gesture;
-
-        // gesture.current NEEDS TO BE CHECKED FOR NULL VALUES
-        var effect = new ActiveEffect(
-                gesture.current.effect,
-                gesture.current.jointTracked,
-                this.bodyObject.transform.FindChild(gesture.current.jointTracked).position,
-                gesture.current.directionOrigin,
-                gesture.current.pairedToJoint,
-                gesture.current.timeout);
-
-        if (activeEffects.ContainsKey(currentGesture))
-        {
-            activeEffects[currentGesture].Destroy();
-
-            activeEffects[currentGesture] = effect;
-        }
-        else
-        {
-            activeEffects.Add(gesture, effect);
-        }
+        IcurrentSubGesture = index;
         
-        effect.UpdateEffect(this.bodyObject);
+        ActiveEffect newEffect = ActiveEffectBuilder(gesture.subGestures[index]);
+        
+        if (IcurrentSubGesture == 0 && !activeEffects.ContainsKey(gesture))
+        {
+            // New
+            Debug.Log("New");
+
+            newEffect.Activate();
+            activeEffects.Add(gesture, newEffect);
+            IcurrentSubGesture++;
+        }
+        else if (0 < IcurrentSubGesture && IcurrentSubGesture < gesture.count - 1
+                 && activeEffects.ContainsKey(gesture))
+        {
+            // Existing
+            Debug.Log("Existing");
+
+            RemoveInactiveEffects(gesture);
+            newEffect.Activate();
+            activeEffects[gesture] = newEffect;
+            IcurrentSubGesture++;
+        }
+        else if (IcurrentSubGesture == gesture.count - 1
+                 && activeEffects.ContainsKey(gesture))
+        {
+            // Last
+            Debug.Log("Last");
+
+            RemoveInactiveEffects(gesture);
+            newEffect.Activate();
+            activeEffects[gesture] = newEffect;
+            IcurrentSubGesture++;
+        }
     }
 
 
     public void UpdateGesture()
     {
-        if (currentGesture != null)
+        // IcurrentSubGesture > 0
+
+        Debug.Log(IcurrentSubGesture);
+
+        if (!ComparePosition(currentGesture.subGestures[IcurrentSubGesture - 1]))
         {
-            if (currentGesture.next.isFinisher)
+            // Not in previous recorded pose
+            if (currentGesture.subGestures.Length > IcurrentSubGesture)
             {
-                if (ComparePosition(currentGesture.getFinishers))
+                // Index is in bounds
+                SubGesture nextPosition = currentGesture.subGestures[IcurrentSubGesture];
+
+                if (nextPosition.isFinisher)
                 {
-                    currentGesture.Step();
-                    ExecuteGesture(currentGesture);
+                    SubGesture position = CompareAndGetPosition(currentGesture.getFinishers);
+                    
+                    if (position != null)
+                    {
+                        activeEffects[currentGesture] = ActiveEffectBuilder(position);
+                        ExecuteGesture(currentGesture, currentGesture.IndexOf(position));
+                    }
                 }
                 else
                 {
-                    currentGesture = null;
+                    Debug.Log("Fired");
+                    if (ComparePosition(nextPosition))
+                    {
+                        GameObject effect = activeEffects[currentGesture].effect;
+                        activeEffects[currentGesture] = ActiveEffectBuilder(nextPosition);
+                        MonoBehaviour.Destroy(effect);
+
+                        ExecuteGesture(currentGesture, IcurrentSubGesture);
+                    }
                 }
             }
-            else
+        }
+        else
+        {
+            if (!activeEffects.ContainsKey(currentGesture))
             {
-                if (ComparePosition(currentGesture.next))
-                {
-                    currentGesture.Step();
-                    ExecuteGesture(currentGesture);
-                }
+                ExecuteGesture(currentGesture, IcurrentSubGesture);
             }
         }
     }
 
 
-    private void UpdateEffectPositions()
+    private void UpdateEffect()
     {
-        foreach (KeyValuePair<Gesture, ActiveEffect> activeEffect in activeEffects) {
+        foreach (KeyValuePair<Gesture, ActiveEffect> pair in activeEffects) {
 
-            if (activeEffect.Value.effect != null)
+            if (pair.Value.effect != null)
             {
-                activeEffect.Value.UpdateEffect(bodyObject);
+                pair.Value.UpdateEffect(bodyObject);
             }
             else
             {
-                RemoveActiveEffect(activeEffect.Key);
+                RemoveActiveEffect(pair.Key);
                 break;
             }
         }
     }
     
 
-    public bool ComparePosition(Gesture.SubGesture gesture)
+    public bool ComparePosition(SubGesture gesture)
     {
-        if (currentGesture == null && inGesture == true)
-        {
-            return false;
-        }
-        
         foreach (KeyValuePair<LigDir, Vector3> pair in this.jointPositions)
         {
             if (dist(pair.Value, gesture.position[pair.Key]) > gesture.fudgeFactor)
             {
-                inGesture = false;
                 return false;
             }
         }
@@ -410,21 +424,7 @@ public class PlayerBody {
     }
 
 
-    public bool ComparePosition(List<Gesture.SubGesture> gestures)
-    {
-        for (int i = 0; i < gestures.Count; i++)
-        {
-            if (ComparePosition(gestures[i]))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-
-    public Gesture.SubGesture CompareAndGetPosition(List<Gesture.SubGesture> gestures)
+    public SubGesture CompareAndGetPosition(List<SubGesture> gestures)
     {
         for (int i = 0; i < gestures.Count; i++)
         {
@@ -453,24 +453,58 @@ public class PlayerBody {
     }
 
 
-    public void RemoveActiveEffect(Gesture gesture)
+    private ActiveEffect ActiveEffectBuilder(SubGesture subGesture)
     {
-        activeEffects.Remove(gesture);
-        if (currentGesture == gesture)
-        {
-            currentGesture = null;
-            IcurrentSubGesture = 0;
-            isAmbidextrous = false;
-        }
+        return new ActiveEffect(
+            subGesture.effect,
+            subGesture.jointTracked,
+            this.bodyObject.transform.FindChild(subGesture.jointTracked).position,
+            subGesture.directionOrigin,
+            subGesture.isFinisher,
+            subGesture.pairedToJoint,
+            subGesture.timeout);
     }
 
 
-     private static Vector3 GetJointVector3(KinectJoint joint)
+    private void SweepActiveEffects()
+    {
+        foreach (KeyValuePair<Gesture, ActiveEffect> pair in activeEffects)
+        {
+            if (pair.Value.effect == null)
+            {
+                RemoveActiveEffect(pair.Key);
+            }
+        }
+    }
+
+    
+    private void RemoveInactiveEffects(Gesture gesture)
+    {
+        if (activeEffects.ContainsKey(gesture))
+        {
+            activeEffects.Remove(gesture);
+        }
+    }
+    
+
+    private void RemoveActiveEffect(Gesture gesture)
+    {
+        if (gesture == currentGesture)
+        {
+            currentGesture = null;
+            IcurrentSubGesture = 0;
+        }
+        activeEffects.Remove(gesture);
+    }
+
+
+    private static Vector3 GetJointVector3(KinectJoint joint)
     {
         return new Vector3(joint.Position.X * 5, joint.Position.Y * 5, 5);
     }
 
-     private static Vector3 GetJointVector3(float x, float y, float z)
+
+    private static Vector3 GetJointVector3(float x, float y, float z)
      {
          return new Vector3(x * 5, y * 5, 5);
      }
@@ -514,33 +548,33 @@ public class PlayerBody {
     private static Dictionary<JointType, List<JointType>> renderBoneMap =
         new Dictionary<JointType, List<JointType>>
         {
-            //{ JointType.FootLeft, new List<JointType>(){JointType.AnkleLeft} },
-            //{ JointType.AnkleLeft, JointType.KneeLeft },
-            //{ JointType.KneeLeft, JointType.HipLeft },
-            { JointType.HipLeft, new List<JointType>(){JointType.SpineBase} },
+            { JointType.FootLeft,       new List<JointType>(){JointType.AnkleLeft} },
+            { JointType.AnkleLeft,      new List<JointType>(){JointType.KneeLeft} },
+            { JointType.KneeLeft,       new List<JointType>(){JointType.HipLeft} },
+            { JointType.HipLeft,        new List<JointType>(){JointType.SpineBase} },
         
-            //{ JointType.FootRight, new List<JointType>(){JointType.AnkleRight} },
-            //{ JointType.AnkleRight, JointType.KneeRight },
-            //{ JointType.KneeRight, JointType.HipRight },
-            { JointType.HipRight, new List<JointType>(){JointType.SpineBase} },
+            { JointType.FootRight,      new List<JointType>(){JointType.AnkleRight} },
+            { JointType.AnkleRight,     new List<JointType>(){JointType.KneeRight} },
+            { JointType.KneeRight,      new List<JointType>(){JointType.HipRight} },
+            { JointType.HipRight,       new List<JointType>(){JointType.SpineBase} },
         
-            //{ JointType.HandTipLeft, new List<JointType>(){JointType.HandLeft} },
-            //{ JointType.ThumbLeft, new List<JointType>(){JointType.HandLeft} },
-            { JointType.HandLeft, new List<JointType>(){JointType.WristLeft} },
-            { JointType.WristLeft, new List<JointType>(){JointType.ElbowLeft} },
-            { JointType.ElbowLeft, new List<JointType>(){JointType.ShoulderLeft} },
-            { JointType.ShoulderLeft, new List<JointType>(){JointType.SpineShoulder, JointType.HipLeft } },
+            { JointType.HandTipLeft,    new List<JointType>(){JointType.HandLeft} },
+            { JointType.ThumbLeft,      new List<JointType>(){JointType.HandLeft} },
+            { JointType.HandLeft,       new List<JointType>(){JointType.WristLeft} },
+            { JointType.WristLeft,      new List<JointType>(){JointType.ElbowLeft} },
+            { JointType.ElbowLeft,      new List<JointType>(){JointType.ShoulderLeft} },
+            { JointType.ShoulderLeft,   new List<JointType>(){JointType.SpineShoulder, JointType.HipLeft } },
         
-            //{ JointType.HandTipRight, new List<JointType>(){JointType.HandRight} },
-            //{ JointType.ThumbRight, new List<JointType>(){JointType.HandRight} },
-            { JointType.HandRight, new List<JointType>(){JointType.WristRight} },
-            { JointType.WristRight, new List<JointType>(){JointType.ElbowRight} },
-            { JointType.ElbowRight, new List<JointType>(){JointType.ShoulderRight} },
-            { JointType.ShoulderRight, new List<JointType>(){JointType.SpineShoulder, JointType.HipRight} },
+            { JointType.HandTipRight,   new List<JointType>(){JointType.HandRight} },
+            { JointType.ThumbRight,     new List<JointType>(){JointType.HandRight} },
+            { JointType.HandRight,      new List<JointType>(){JointType.WristRight} },
+            { JointType.WristRight,     new List<JointType>(){JointType.ElbowRight} },
+            { JointType.ElbowRight,     new List<JointType>(){JointType.ShoulderRight} },
+            { JointType.ShoulderRight,  new List<JointType>(){JointType.SpineShoulder, JointType.HipRight} },
         
-            { JointType.SpineBase, new List<JointType>(){JointType.SpineMid} },
-            { JointType.SpineMid, new List<JointType>(){JointType.Neck} },
-            //{ JointType.SpineShoulder, JointType.Neck },
-            { JointType.Neck, new List<JointType>(){JointType.Neck} }
+            { JointType.SpineBase,      new List<JointType>(){JointType.SpineMid} },
+            { JointType.SpineMid,       new List<JointType>(){JointType.Neck} },
+            { JointType.SpineShoulder,  new List<JointType>(){JointType.Neck} },
+            { JointType.Neck,           new List<JointType>(){JointType.Neck} }
         };
 }
