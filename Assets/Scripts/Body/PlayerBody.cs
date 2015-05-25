@@ -61,6 +61,19 @@ public class PlayerBody {
 
         AddJoints();
     }
+
+    public PlayerBody(string name, Material green, Material red)
+    {
+        this.bodyObject = new GameObject("Body: " + name);
+        this.renderedJoints = new List<GameObject>();
+        this.activeEffects = new Dictionary<Gesture, ActiveEffect>();
+        //this.effectRotation = new List<string>();
+
+        redMaterial = red;
+        greenMaterial = green;
+
+        AddJoints();
+    }
     
 
     private void AddJoints()
@@ -87,6 +100,59 @@ public class PlayerBody {
             jointRender.transform.parent = bodyObject.transform;
 
             renderedJoints.Add(jointRender);
+        }
+    }
+
+
+    private void RefreshJoints(float[] floats)
+    {
+        int current = 0;
+
+        for (JointType jt = JointType.SpineBase; jt <= JointType.ThumbRight; jt++)
+        {
+            Transform jointObj = this.bodyObject.transform.FindChild(jt.ToString());
+
+            jointObj.localPosition = GetJointVector3(floats[current], floats[current + 1], floats[current + 2]);
+            current = current + 3;
+        }
+
+        for (JointType jt = JointType.SpineBase; jt <= JointType.ThumbRight; jt++)
+        {
+            Transform sourceTranform = this.bodyObject.transform.FindChild(jt.ToString());
+
+            if (renderBoneMap.ContainsKey(jt))
+            {
+                List<JointType> targetJoints = renderBoneMap[jt];
+
+                foreach (JointType target in targetJoints)
+                {
+                    Transform targetTransform = this.bodyObject.transform.FindChild(target.ToString());
+
+                    Renderer rnd = sourceTranform.GetComponent<Renderer>();
+                    rnd.material = redMaterial;
+
+                    if (currentGesture != null)
+                    {
+                        if (ComparePosition(currentGesture.current))
+                        {
+                            rnd.material = greenMaterial;
+                        }
+                        else
+                        {
+                            rnd.material = redMaterial;
+                        }
+                    }
+                    else
+                    {
+                    }
+
+                    LineRenderer lr = sourceTranform.GetComponent<LineRenderer>();
+                    lr.SetPosition(0, sourceTranform.localPosition);
+                    lr.SetPosition(1, targetTransform.localPosition);
+                    lr.SetColors(Color.cyan, Color.cyan);
+                    lr.enabled = true;
+                }
+            }
         }
     }
 
@@ -130,6 +196,39 @@ public class PlayerBody {
                 }
             }
         }
+    }
+
+    public void RefreshBody(float[] floats)
+    {
+        // Local positions of left joints
+        ShoulderLeft = bodyObject.transform.FindChild("ShoulderLeft");
+        ElbowLeft = bodyObject.transform.FindChild("ElbowLeft");
+        WristLeft = bodyObject.transform.FindChild("WristLeft");
+        HandLeft = bodyObject.transform.FindChild("HandLeft");
+
+        // Local positions of right joints
+        ShoulderRight = bodyObject.transform.FindChild("ShoulderRight");
+        ElbowRight = bodyObject.transform.FindChild("ElbowRight");
+        WristRight = bodyObject.transform.FindChild("WristRight");
+        HandRight = bodyObject.transform.FindChild("HandRight");
+
+        // Update Right Orientations
+        RightUpperArm = (ElbowRight.localPosition - ShoulderRight.localPosition).normalized;
+        RightLowerArm = (WristRight.localPosition - ElbowRight.localPosition).normalized;
+        RightHand = (HandRight.localPosition - WristRight.localPosition).normalized;
+
+        // Update Left Orientations
+        LeftUpperArm = (ElbowLeft.localPosition - ShoulderLeft.localPosition).normalized;
+        LeftLowerArm = (WristLeft.localPosition - ElbowLeft.localPosition).normalized;
+        LeftHand = (HandLeft.localPosition - WristLeft.localPosition).normalized;
+
+        InstantiateDict();
+
+        RefreshJoints(floats);
+
+        UpdateGesture();
+
+        UpdateEffectPositions();
     }
 
 
@@ -363,6 +462,11 @@ public class PlayerBody {
     {
         return new Vector3(joint.Position.X * 5, joint.Position.Y * 5, 5);
     }
+
+     private static Vector3 GetJointVector3(float x, float y, float z)
+     {
+         return new Vector3(x * 5, y * 5, 5);
+     }
 
 
     private float dist(Vector3 v1, Vector3 v2)

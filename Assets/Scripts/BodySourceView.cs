@@ -14,15 +14,20 @@ public class BodySourceView : MonoBehaviour
     private BodySourceManager _BodyManager;
     private Body[] kinectBodies;
 
+    private Dictionary<string, PlayerBody> _AlphaBodies;
+
+
     private int interval = 1;
 
     public Material redMaterial;
     public Material greenMaterial;
 
+    public NetworkReader nr;
 
     void Start()
     {
         _Bodies = new Dictionary<ulong, PlayerBody>();
+        _AlphaBodies = new Dictionary<string, PlayerBody>();
         _Gestures = new List<Gesture>();
         
 
@@ -87,7 +92,65 @@ public class BodySourceView : MonoBehaviour
     }
 
 
-	void Update()
+    void Update()
+    {
+        UpdateULongBodies();
+        UpdateAlphaBodies();
+    }
+
+    void UpdateAlphaBodies()
+    {
+        if (!nr.Connected)
+        {
+            return;
+        }
+
+        if (nr.ReadOnce)
+        {
+            if (nr.NumBodies > 0)
+            {
+                List<string> notFound = new List<string>();
+
+                List<string> names = nr.Names;
+                List<float[]> floats = nr.Floats;
+
+                foreach (string name in _AlphaBodies.Keys)
+                {
+                    if (!names.Contains(name))
+                    {
+                        notFound.Add(name);
+                    }
+                }
+
+                foreach (string name in notFound)
+                {
+                    _AlphaBodies[name].DestroyBody();
+                    _AlphaBodies.Remove(name);
+                }
+
+                for (int i = 0; i < names.Count; i++)
+                {
+                    if (!_AlphaBodies.ContainsKey(names[i]))
+                    {
+                        _AlphaBodies[names[i]] = CreateBodyObject(names[i]);
+                    }
+
+                    RefreshBody(floats[i], _AlphaBodies[names[i]]);
+                    GestureListener(_AlphaBodies[names[i]]);
+                }
+            }
+            else
+            {
+                foreach (KeyValuePair<string, PlayerBody> zombie in _AlphaBodies)
+                {
+                    zombie.Value.DestroyBody();
+                }
+                _AlphaBodies.Clear();
+            }
+        }
+    }
+
+    void UpdateULongBodies()
     {
         _BodyManager = BodySourceManager.GetComponent<BodySourceManager>();
 
@@ -179,6 +242,11 @@ public class BodySourceView : MonoBehaviour
         return new PlayerBody(id, greenMaterial, redMaterial);
     }
 
+    private PlayerBody CreateBodyObject(string name)
+    {
+        return new PlayerBody(name, greenMaterial, redMaterial);
+    }
+
 
     /**
      * Refreshes PlayerBody to evaluate Kinect.Body positions
@@ -186,6 +254,11 @@ public class BodySourceView : MonoBehaviour
     private void RefreshBody(Body body, PlayerBody player)
     {
         player.RefreshBody(body);
+    }
+
+    private void RefreshBody(float[] floats, PlayerBody player)
+    {
+        player.RefreshBody(floats);
     }
 
 

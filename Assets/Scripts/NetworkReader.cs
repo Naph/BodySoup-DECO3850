@@ -31,6 +31,11 @@ public class NetworkReader : MonoBehaviour {
     private bool reading = false;
     private bool readOnce = false;
 
+    public bool Connected
+    {
+        get { return connected; }
+    }
+
 	// Use this for initialization
 	void Start () {
         tcpListener = new TcpListener(IPAddress.Any, 41724);
@@ -95,9 +100,15 @@ public class NetworkReader : MonoBehaviour {
 
                 if (numBodies[0] == 0)
                 {
+                    this.readOnce = true;
                     this.numBodies = 0;
-                    names = null;
-                    floats = null;
+                    this.names = null;
+                    this.floats = null;
+
+                    this.validFloats = null;
+                    this.validNames = null;
+                    this.validNumBodies = 0;
+
                     Debug.Log("No Bodies Seen");
                     reading = false;
                 }
